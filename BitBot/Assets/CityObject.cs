@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class CityObject
 {	
-	public Graph<Dummy, int> alleyGraph = new Graph<List<CityObject>, int>();
+	public Graph<Dummy, int> alleyGraph = new Graph<Dummy, int>();
 	
 	
 	public CityObject ()
