@@ -3,9 +3,10 @@ using System.Collections;
 
 public class ChaseResource : MyMonoBehaviour 
 {
-	public EntityDescriptor descriptor;
-	public MovementCC movement;
-	public Animator animator;
+	public GameObject unit;
+	EntityDescriptor descriptor;
+	MovementCC movement;
+	Animator animator;
 	GameObject interactingResource;
 	bool interacting = false;
 	float interactTime = 3.0f;
@@ -13,11 +14,11 @@ public class ChaseResource : MyMonoBehaviour
 	float interactDist = 2.0f;
 	
 	// Use this for initialization
-	void Awake () 
+	void Start () 
 	{
-		//descriptor = memoizer.GetMemoizedComponent<EntityDescriptor>(gnome);
-		//movement = memoizer.GetMemoizedComponent<MovementCC>(gameObject);
-		//animator = memoizer.GetMemoizedComponent<Animator>(gnome);
+		descriptor = memoizer.GetMemoizedComponent<EntityDescriptor>(gameObject);
+		movement = memoizer.GetMemoizedComponent<MovementCC>(gameObject);
+		animator = memoizer.GetMemoizedComponent<Animator>(unit);
 	}
 	
 	// Update is called once per frame

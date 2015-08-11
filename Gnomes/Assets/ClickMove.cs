@@ -4,18 +4,18 @@ using System.Collections;
 public class ClickMove : MyMonoBehaviour 
 {
 	/* To display the drag animation*/
-	public GameObject gnome;
-	public Animator animator;
-	public MovementCC movement;
-	public ChaseResource chaseResource;
+	public GameObject unit;
+	Animator animator;
+	MovementCC movement;
+	ChaseResource chaseResource;
 	bool selected;
 	
 	// Use this for initialization
 	void Start () 
 	{
-		//animator = memoizer.GetMemoizedComponent<Animator>(gnome);
-		//movement = memoizer.GetMemoizedComponent<MovementCC>(gameObject);
-		//chaseResource = memoizer.GetMemoizedComponent<ChaseResource>(gnome);
+		animator = memoizer.GetMemoizedComponent<Animator>(unit);
+		movement = memoizer.GetMemoizedComponent<MovementCC>(gameObject);
+		chaseResource = memoizer.GetMemoizedComponent<ChaseResource>(gameObject);
 	}
 	
 	// Update is called once per frame
@@ -28,7 +28,7 @@ public class ClickMove : MyMonoBehaviour
 			
 			foreach (RaycastHit hit in hits)
 			{
-				if (hit.collider.gameObject.tag == "Gnome" && hit.collider.gameObject == gnome)
+				if (hit.collider.gameObject.tag == "Gnome" && hit.collider.gameObject == unit)
 				{
 					animator.SetBool("Dragged", true);
 					selected = true;
