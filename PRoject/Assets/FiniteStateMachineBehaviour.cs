@@ -5,28 +5,35 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
+/* Interfaces between ability and the action bar that holds it. */
 public class AbilityFSM : FiniteStateMachineBehaviour
 {
 	public Ability containingAbility;
 }
 
 /* FiniteStateMachine base class for game entities (hence the derival from MonoBehaviour). */
-public class FiniteStateMachineBehaviour : MonoBehaviour
+public class FiniteStateMachineBehaviour : MyMonoBehaviour
 {
 	#region DECLARATIONS AND INSTANTIATIONS
 	/* Setup method dictionary and default all methods to do nothing */
-	public Dictionary<string, Delegate> mtdDictionary = new Dictionary<string, Delegate>();
+	public Dictionary<string, Delegate> methodMemoizer = new Dictionary<string, Delegate>();
 	public Action myUpdate = EmptyFunction;
 	public Action<Collider> myOnTriggerEnter = EmptyCollider;
 	public Action<Collider> myOnTriggerStay = EmptyCollider;
 	public Action<Collider> myOnTriggerExit = EmptyCollider;
-	public Action<Collision> myOnCollisionEnter = EmptyCollider;
-	public Action<Collision> myOnCollisionStay = EmptyCollider;
-	public Action<Collision> myOnCollisionExit = EmptyCollider;
+	public Action<Collision> myOnCollisionEnter = EmptyCollision;
+	public Action<Collision> myOnCollisionStay = EmptyCollision;
+	public Action<Collision> myOnCollisionExit = EmptyCollision;
 	public Action myFreeAction = EmptyFunction;
 	public Func<IEnumerator> EnterState = EmptyCoroutine;
 	public Func<IEnumerator> ExitState = EmptyCoroutine;
-	public Enum currState;
+	
+	/* Ensures the speed of transitions is independent of the framerate. */
+	public float transitionInterval;
+	private float timeSinceTransition;
+	private bool canTransition;
+	
+	private Enum currState;
 
 	#endregion
 
@@ -60,9 +67,9 @@ public class FiniteStateMachineBehaviour : MonoBehaviour
 		myOnTriggerEnter = updateDelegate<Action<Collider>>("OnTriggerEnter", EmptyCollider);
 		myOnTriggerStay = updateDelegate<Action<Collider>>("OnTriggerStay", EmptyCollider);
 		myOnTriggerExit = updateDelegate<Action<Collider>>("OnTriggerExit", EmptyCollider);
-		myOnCollisionEnter = updateDelegate<Action<Collision>>("OnCollisionEnter", EmptyCollider);
-		myOnCollisionStay = updateDelegate<Action<Collision>>("OnCollisionStay", EmptyCollider);
-		myOnCollisionExit = updateDelegate<Action<Collision>>("OnCollisionExit", EmptyCollider);
+		myOnCollisionEnter = updateDelegate<Action<Collision>>("OnCollisionEnter", EmptyCollision);
+		myOnCollisionStay = updateDelegate<Action<Collision>>("OnCollisionStay", EmptyCollision);
+		myOnCollisionExit = updateDelegate<Action<Collision>>("OnCollisionExit", EmptyCollision);
 		EnterState = updateDelegate<Func<IEnumerator>>("enterState", EmptyCoroutine);
 		ExitState = updateDelegate<Func<IEnumerator>>("exitState", EmptyCoroutine);
 
@@ -71,40 +78,54 @@ public class FiniteStateMachineBehaviour : MonoBehaviour
 		{
 			StartCoroutine(EnterState());
 		}
+		
+		timeSinceTransition = 0.0f;
+		canTransition = false;
 	}
-
-	/* Facilitates method binding. The "where" constraint is not crucial */
-	T updateDelegate<T>(string mtdName, T Default) where T : class
+	
+	/* Facilitates method binding. */
+	T updateDelegate<T> (string mtdName, T Default) where T : class
 	{
-		/* The name of the method we will bind is derived from the state. */
-		string newMtdName = currState.ToString() + mtdName;
-		T newMethod = mtdDictionary[newMtdName] as T;
-
-		/* Attempt to find method pointer in method dictionary. */
-		if (newMethod != null)
+		T method;
+		//Debug.Log("Attempting type method lookup:" + currentState.ToString() + mtdName);
+		if((method = getMemoizedMethod<T>(currentState.ToString() + mtdName)) != null)
 		{
-			return newMethod;
+			return method;
 		}
-		/* Otherwise try to find it with reflection. GetType() gets this class type. */
-		else
+		
+		return Default;
+	}
+	
+	/* Improvement can skip searching for unfound methods on objects of the same type as seen before. */
+	T getMemoizedMethod<T> (string name) where T : class
+	{
+		if (!methodMemoizer.ContainsKey(name))
 		{
-			MethodInfo newMethodInfo = GetType().GetMethod(newMtdName) as MethodInfo;
-
+			MethodInfo newMethodInfo = GetType().GetMethod(name);
+			
 			/* Found a method! Enter it into the dictonary and return it. */
 			if (newMethodInfo != null)
 			{
-				Delegate newDelegate = Delegate.CreateDelegate(typeof(T), this, newMethodInfo);
-				mtdDictionary[newMtdName] = newDelegate;
-				return newMethod;
+				//Debug.Log("Found method!");
+				T newDelegate = System.Delegate.CreateDelegate(typeof(T), this, newMethodInfo) as T;
+				methodMemoizer[name] = newDelegate as System.Delegate;
+				return methodMemoizer[name] as T;
 			}
-			/* Otherwise return the default method supplied. */
 			else
 			{
-				return Default;
+				return null;
 			}
 		}
-	}
 
+		Debug.Log("Found memoized method!");
+		return methodMemoizer[name] as T;
+	}
+	
+	public void TerminateFSM ()
+	{
+		Destroy(this);
+	}
+	
 	#region EMPTY METHODS
 
 	static void EmptyFunction () 
@@ -117,7 +138,7 @@ public class FiniteStateMachineBehaviour : MonoBehaviour
 		return;
 	}
 
-	static void EmptyCollider (Collision collision)
+	static void EmptyCollision (Collision collision)
 	{
 		return;
 	}
@@ -133,37 +154,42 @@ public class FiniteStateMachineBehaviour : MonoBehaviour
 
 	void Update()
 	{
-		myUpdate();
+		if ((timeSinceTransition += Time.deltaTime) > transitionInterval)
+		{
+			canTransition = true;
+		}
+		
+		if (canTransition) myUpdate();
 	}
 
 	void OnTriggerEnter(Collider other)
 	{
-		myOnTriggerEnter(other);
+		if (canTransition) myOnTriggerEnter(other);
 	}
 
 	void OnTriggerStay(Collider other)
 	{
-		myOnTriggerStay(other);
+		if (canTransition) myOnTriggerStay(other);
 	}
 
 	void OnTriggerExit(Collider other)
 	{
-		myOnTriggerExit(other);
+		if (canTransition) myOnTriggerExit(other);
 	}
 
 	void OnCollisionEnter(Collision other)
 	{
-		myOnCollisionEnter(other);
+		if (canTransition) myOnCollisionEnter(other);
 	}
 	
 	void OnCollisionStay(Collision other)
 	{
-		myOnCollisionStay(other);
+		if (canTransition) myOnCollisionStay(other);
 	}
 	
 	void OnCollisionExit(Collision other)
 	{
-		myOnCollisionExit(other);
+		if (canTransition) myOnCollisionExit(other);
 	}
 
 	#endregion

@@ -20,6 +20,7 @@ public class LevelBuilder
 			180.0f, 202.5f, 225.0f, 247.5f,
 			270.0f, 292.5f, 315.0f, 337.5f,
 		};
+	public Vector3 levelStart;
 	public Vector3 origin = new Vector3(0.0f, 0.0f, 0.0f); 
 	public int nodes;
 	public int maxEdges;

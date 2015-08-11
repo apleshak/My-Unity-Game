@@ -1,0 +1,162 @@
+fileFormatVersion: 2
+guid: 96aa53547db10499c99dfe1bba716965
+timeCreated: 1437826970
+licenseType: Free
+ModelImporter:
+  serializedVersion: 18
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: group4
+    100004: group5
+    100006: group6
+    100008: pasted__pCone3
+    100010: pasted__pCone4
+    100012: pCone1
+    100014: pCone2
+    100016: pCone3
+    100018: pSphere1
+    100020: pSphere2
+    400000: //RootNode
+    400002: group4
+    400004: group5
+    400006: group6
+    400008: pasted__pCone3
+    400010: pasted__pCone4
+    400012: pCone1
+    400014: pCone2
+    400016: pCone3
+    400018: pSphere1
+    400020: pSphere2
+    2300000: pasted__pCone3
+    2300002: pasted__pCone4
+    2300004: pCone1
+    2300006: pCone2
+    2300008: pCone3
+    2300010: pSphere1
+    2300012: pSphere2
+    3300000: pasted__pCone3
+    3300002: pasted__pCone4
+    3300004: pCone1
+    3300006: pCone2
+    3300008: pCone3
+    3300010: pSphere1
+    3300012: pSphere2
+    4300000: pSphere1
+    4300002: pCone1
+    4300004: pCone2
+    4300006: pSphere2
+    4300008: pCone3
+    4300010: pasted__pCone3
+    4300012: pasted__pCone4
+    7400000: Take 001
+    9500000: //RootNode
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: .5
+    animationPositionError: .5
+    animationScaleError: .5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: Take 001
+      takeName: Take 001
+      firstFrame: 1
+      lastFrame: 35
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: group4
+        weight: 1
+      - path: group4/group5
+        weight: 1
+      - path: group4/group5/group6
+        weight: 1
+      - path: group4/group5/group6/pasted__pCone3
+        weight: 1
+      - path: group4/group5/group6/pasted__pCone4
+        weight: 1
+      - path: group4/group5/group6/pCone1
+        weight: 1
+      - path: group4/group5/group6/pCone2
+        weight: 1
+      - path: group4/group5/group6/pCone3
+        weight: 1
+      - path: group4/group5/group6/pSphere1
+        weight: 1
+      - path: group4/group5/group6/pSphere2
+        weight: 1
+      maskType: 0
+      maskSource: {instanceID: 0}
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    splitTangentsAcrossUV: 1
+    normalImportMode: 0
+    tangentImportMode: 1
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    human: []
+    skeleton: []
+    armTwist: .5
+    foreArmTwist: .5
+    upperLegTwist: .5
+    legTwist: .5
+    armStretch: .0500000007
+    legStretch: .0500000007
+    feetSpacing: 0
+    rootMotionBoneName: 
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

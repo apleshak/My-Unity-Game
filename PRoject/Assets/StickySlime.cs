@@ -12,9 +12,11 @@ using System.Collections;
 public class StickySlime : AbilityFSM
 {
 	Animator animator;
-	Memoizer memoizer;
+	/* This prefab creates both the vomit particles and the slime puddles. */
 	Object slimePrefab;
+	/* The reference to the spawned prefab. */
 	GameObject slimeEmitter;
+	/* The controller of the emitter component on the slimeEmitter gameobject. */
 	EmitterController emitterController;
 	public enum states
 	{
@@ -25,37 +27,42 @@ public class StickySlime : AbilityFSM
 	
 	void Start ()
 	{
-		currState = states.Begin;
-		Instantiator instantiator = Instantiator.instance;
-		memoizer = instantiator.memoizer;
-		animator = memoizer.getMemoizedComponent<Animator>(gameObject);
-		slimePrefab = memoizer.getMemoizedPrefabs("Slime Emitter");
-	}
-
-	void BeginUpdate ()
-	{
-		/* could optimize with memoization too */
-		Transform vomitAnchor = gameObject.transform.FindChild("VomitAnchor");
-		slimeEmitter = (GameObject)GameObject.Instantiate(slimePrefab, vomitAnchor.position, Quaternion.identity);
-		emitterController = slimeEmitter.GetComponent<EmitterController>();
-		animator.SetBool("Vomiting", true);
-		currState = states.Vomiting;
+		currentState = states.Begin;
+		animator = memoizer.GetMemoizedComponent<Animator>(gameObject);
+		slimePrefab = memoizer.GetMemoizedPrefab("Sticky Slime", "Slime Emitter");
 	}
 	
-	void VomitingUpdate ()
+	/* Spawns vomit prefab, creates references and starts animaton. */
+	public void BeginUpdate ()
+	{
+		/* Get the attachment point of the slimeEmitter. */
+		Transform vomitAnchor = gameObject.transform.FindChild("VomitAnchor");
+		/* Spawn it. */
+		slimeEmitter = (GameObject)Instantiate(slimePrefab, vomitAnchor.position, Quaternion.identity);
+		/* Make it a child of the attachment point transform. */
+		slimeEmitter.transform.SetParent(vomitAnchor.transform);
+		/* Get the emitter to determine when this ability ends. */
+		emitterController = slimeEmitter.GetComponent<EmitterController>();
+		/* Start the animation. */
+		animator.SetTrigger("Vomiting");
+		
+		currentState = states.Vomiting;
+	}
+	
+	/* Waits for the emitter to stop vomiting, then report success. */
+	public void VomitingUpdate ()
 	{
 		if (emitterController.finished)
 		{
 			containingAbility.successful = true;
-			currState = states.Finish;
+			currentState = states.Finish;
 		}
 	}
 	
-	void FinishUpdate ()
+	public void FinishUpdate ()
 	{
-		animator.SetBool("Vomiting", false);
 		containingAbility.finished = true;
-		Destroy(this);
+		TerminateFSM();
 	}
 }
 

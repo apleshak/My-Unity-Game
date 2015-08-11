@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 
 /* 
-   Dashes in a straight line forward, locking all movement inputs.
+   Dashes in a straight line forward for 5 meters, locking all movement inputs.
    
    Like all abilities this one starts working when attached and ceases
    when it destroys itself. Communicated with containingAbility for
@@ -12,65 +12,55 @@ using System.Collections;
 */
 public class Dash : AbilityFSM
 {
-	Memoizer memoizer;
-	Movement movement;
-	float stepDistance = 0.25f;
-	float remainingDistance = 4.0f;
-	Animator animator;
+	MovementCC movement;
+	//Animator animator;
+	float remainingDistance = 5.0f;
+	
 	public enum states
 	{
-		Begin,
 		Dashing,
 		Finish
 	};
 	
 	void Start ()
 	{
-		currState = states.Begin;
-		Instantiator instantiator = Instantiator.instance;
-		memoizer = instantiator.memoizer;
-		movement = memoizer.getMemoizedComponent<Movement>(this.gameObject);
-		animator = memoizer.getMemoizedComponent<Animator>(this.gameObject);
-	}
-	
-	void BeginUpdate ()
-	{
-		/* Lock player input, play the dash animation and move to next state. */
+		movement = memoizer.GetMemoizedComponent<MovementCC>(this.gameObject);
 		movement.lockInput();
-		animator.SetBool("Dashing", true);
-		currState = states.Dashing;
+		
+		//animator.SetBool("Dashing", true);
+		currentState = states.Dashing;
+		Debug.Log("Starting Dash!");
 	}
 	
-	void DashingUpdate ()
+	public void DashingUpdate ()
 	{
-		/* Move forward by step distance. */
-		movement.move(stepDistance);
-		remainingDistance -= stepDistance;
+		/* Move forward by a step. */
+		remainingDistance -= movement.Move(EntityBehaviour.movementModes.Fast);
 		
 		if (remainingDistance <= 0.0f)
 		{
 			containingAbility.successful = true;
-			currState = states.Finish;
+			currentState = states.Finish;
 		}
 	}
 	
-	void DashingOnCollisionEnter (Collider other)
+	/* TODO Check that setting finished and successful in separate frames is fine. */
+	public void DashingOnCollisionEnter (Collision other)
 	{
-		if (other.gameObject.tag == "Structure" || other.gameObject.tag == "Minion" || 
-			other.gameObject.tag == "Entity")
+		if (other.gameObject.tag == "Structure" || other.gameObject.tag == "Entity")
 		{
-			animator.SetBool("Dashing", false);
-			containingAbility.successful = true;
-			currState = states.Finish;
+			containingAbility.successful = false;
+			currentState = states.Finish;
 		}
 	}
 	
-	void FinishUpdate ()
+	public void FinishUpdate ()
 	{
-		/* Unlock player input, end animation, report completion and self-destruct. */
-		animator.SetBool("Dashing", false);
+		Debug.Log("Done dashing!");
+		/* Unlock player input, report completion and self-destruct. */
 		movement.unlockInput();
+		//animator.SetBool("Dashing", false);
 		containingAbility.finished = true;
-		Destroy(this);
+		TerminateFSM();
 	}
 }

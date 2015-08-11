@@ -14,7 +14,7 @@ public class Ability
 	public static Dictionary<Ability, float> successReport = new Dictionary<Ability, float>();
 	public System.Type abilityType;
 	public bool targeted;
-	public Texture2D icon;
+	public Sprite icon;
 	public string name;
 	public string description;
 	public HashSet<string> tags;
@@ -56,7 +56,7 @@ public class Ability
 				}
 				else
 				{
-					containingActionBar.abilityBoxes[lastIdx].loadNextAbility(true);
+					containingActionBar.abilityBoxes[lastIdx].loadNextAbility(false);
 				}
 			}
 		}
@@ -66,12 +66,13 @@ public class Ability
 		}
 	}
 	
-	public Ability (System.Type AbilityType, Texture2D Icon, string Name, string Description, 
+	/* For targeted abilties. */
+	public Ability (System.Type AbilityType, Sprite Icon, string Name, string Description, 
 				   	HashSet<string> Tags, float Range, float Angle)
 	{
-		finished = false;
-		successful = false;
-		targeted = true;
+		Finished = false;
+		Successful = false;
+		targeted = false;
 		abilityType = AbilityType;
 		icon = Icon;
 		name = Name;
@@ -81,17 +82,30 @@ public class Ability
 		angle = Angle;
 	}
 	
-	public Ability (System.Type AbilityType, Texture2D Icon, string Name, string Description, 
+	/* For untargeted abilties. */
+	public Ability (System.Type AbilityType, Sprite Icon, string Name, string Description, 
 					HashSet<string> Tags)
 	{
-		finished = false;
-		successful = false;
+		Finished = false;
+		Successful = false;
 		targeted = false;
 		abilityType = AbilityType;
 		icon = Icon;
 		name = Name;
 		description = Description;
 		tags = Tags;
+	}
+	
+	public Ability DeepCopy ()
+	{
+		if (targeted)
+		{
+			return new Ability(abilityType, icon, name, description, tags, range, angle);
+		}
+		else
+		{
+			return new Ability(abilityType, icon, name, description, tags);
+		}
 	}
 	
 	public bool inRange (Vector3 source, Vector3 destination, Vector3 direction)
@@ -104,17 +118,25 @@ public class Ability
 		return true;
 	}
 	
-	// Try to get actionBAr from user? 
+	//TODO Try to get actionBar from user (overload)?
+	/* Ability writes back to the action bar when done. */
 	public bool execute (GameObject user, ActionBar actionBar)
 	{
-		if (!targeted)
+		Debug.Log("Executing from ability");
+		Finished = false;
+		Successful = false;
+		AbilityFSM addedAbility = (AbilityFSM)user.AddComponent(abilityType);
+		addedAbility.containingAbility = this;
+		containingActionBar = actionBar;
+		return true;
+	}
+	
+	public bool execute (GameObject user, GameObject target, ActionBar actionBar)
+	{
+		if (!targeted || inRange(user.transform.position, 
+			target.transform.position, user.transform.forward))
 		{
-			finished = false;
-			successful = false;
-			AbilityFSM addedAbility = (AbilityFSM)user.AddComponent(abilityType);
-			addedAbility.containingAbility = this;
-			containingActionBar = actionBar;
-			return true;
+			execute(user, actionBar);
 		}
 		
 		return false;

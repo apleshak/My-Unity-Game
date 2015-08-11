@@ -1,15 +1,20 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+/* Holds abilities and can provide deep copies via GetAbility. */
 public class AbilityDatabase
 {	
+	public int maxComboSize;
 	Dictionary<string, Ability> abilities;
-	Dictionary<string, List<string>> tagComparator;
+	Dictionary<string, List<string>> tagCounters;
+	Dictionary<string, List<string>> tagCombos;
 	
 	public AbilityDatabase()
 	{
-		tagComparator = new Dictionary<string, List<string>>();
+		tagCounters = new Dictionary<string, List<string>>();
+		tagCombos = new Dictionary<string, List<string>>();
 		abilities = new Dictionary<string, Ability>();
+		maxComboSize = 3;
 	}
 	
 	public void addAbility(Ability toAdd)
@@ -17,18 +22,23 @@ public class AbilityDatabase
 		abilities[toAdd.name] = toAdd;
 	}
 	
-	public Ability getAbility (string name)
+	public Ability GetAbility (string name)
 	{
-		return abilities[name];
+		return abilities[name].DeepCopy();
 	}
 	
 	public void addCounter(string thisTag, string countersThisTag)
 	{
-		tagComparator[thisTag].Add(countersThisTag);
+		tagCounters[thisTag].Add(countersThisTag);
+	}
+	
+	public void AddCombo (string thisTag, string complimentsThisTag)
+	{
+		tagCombos[thisTag].Add(complimentsThisTag);
 	}
 	
 	/* Of the current options each AI has, return the one that counters playerAction best. Can be null. */
-	public Ability getBestCounter(Ability playerAction, GameObject player,
+	public Ability GetBestCounter(Ability playerAction, GameObject player,
 	                              List<Ability> enemyOptions, GameObject enemy)
 	{
 		Ability bestOption = null;
@@ -36,7 +46,7 @@ public class AbilityDatabase
 		
 		foreach(Ability enemyAbility in enemyOptions)
 		{
-			int score = compareAbilities(enemyAbility, playerAction);
+			int score = CompareAbilities(enemyAbility, playerAction);
 			bool inRange = enemyAbility.inRange(enemy.transform.position, player.transform.position, enemy.transform.forward);
 			
 			if (score > maxScore && inRange)
@@ -49,12 +59,24 @@ public class AbilityDatabase
 		return bestOption;
 	}
 	
-	bool isCounter(string thisTag, string toThisTag)
+	/* Used by compareAbilities. */
+	bool IsCounter(string thisTag, string toThisTag)
 	{
-		return tagComparator[thisTag].Contains(toThisTag);
+		return tagCounters[thisTag].Contains(toThisTag);
 	}
 	
-	int compareAbilities(Ability ability1, Ability ability2)
+	bool IsCombo(string thisTag, string andThisTag)
+	{
+		return tagCombos[thisTag].Contains(andThisTag);
+	}
+	
+	public int ComboEval (HashSet<AbilityActionBar> actionBars)
+	{
+		if ()
+	}
+	
+	/* Return a postive int if ability1 has an inherent advantage over ability2. Returns a negative int otherwise. */
+	public int CompareAbilities(Ability ability1, Ability ability2)
 	{
 		int score = 0;
 		
@@ -62,11 +84,11 @@ public class AbilityDatabase
 		{
 			foreach (string tag2 in ability2.tags)
 			{
-				if (isCounter(tag1, tag2))
+				if (IsCounter(tag1, tag2))
 				{
 					score += 1;
 				}
-				else if (isCounter(tag2, tag1))
+				else if (IsCounter(tag2, tag1))
 				{
 					score -= 1;
 				}

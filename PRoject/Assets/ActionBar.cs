@@ -22,9 +22,14 @@ public class AbilityActionBar : ActionBar
 }
 
 /* 
-   Holds abilityBoxes that hold a list of abilities. When a box executes no other box may be used 
-   until the ability in it reports completion. When a box executes no other ability in it can
-   be executed until the ability reports completion.
+   Holds abilityBoxes that hold a list of abilities. 
+   
+   When executed the lastBoxIdx box locks and that box's last ability is used. This ability 
+   sets finished and successful, advance the box's nextAbilityIdx, if successful,
+    and set inProgress to false, which unlocks the box.
+   
+   When a box executes no other box may be used until the ability in it reports completion. 
+   When a box executes no other ability in it can be executed until the ability reports completion.
    
    Ability Action bar is separate from movement actionbar
    TODO: Find a way to seamlessly integrate abilities that reset their box once failed.
@@ -36,6 +41,7 @@ public class ActionBar : Stateful<Ability>
 	public GameObject owner;
 	public int lastBoxIdx;
 	bool InProgress;
+	/* Touched by Ability when done. */
 	public bool inProgress
 	{
 		get
@@ -48,7 +54,9 @@ public class ActionBar : Stateful<Ability>
 			
 			if (value == false && (abilityBoxes.Count > lastBoxIdx))
 			{
+				Debug.Log("Unlocked action bar");
 				abilityBoxes[lastBoxIdx].isLocked = false;
+				Debug.Log ("Unlocked ability box");
 			}
 		}
 	}
@@ -58,10 +66,15 @@ public class ActionBar : Stateful<Ability>
 		lastBoxIdx = 0;
 		abilityBoxes = new List<AbilityBox>();
 		inProgress = false;
-		return;
 		owner = Owner;
 	}
 	
+	public Ability GetCurrAbilityInBox (int idx)
+	{
+		return abilityBoxes[idx].currAbility;
+	}
+	
+	/* Never call with stack-allocated lists. */
 	public void addAbilityBox (List<Ability> abilities)
 	{
 		AbilityBox newBox = new AbilityBox(abilities, this);
@@ -112,7 +125,7 @@ public class ActionBar : Stateful<Ability>
 		return false;
 	}
 	
-	public List<Ability> getUnlockedAbilities()
+	public List<Ability> GetUnlockedAbilities()
 	{
 		List<Ability> unlockedAbilities = new List<Ability>();
 		
@@ -127,11 +140,11 @@ public class ActionBar : Stateful<Ability>
 		return unlockedAbilities;
 	}
 	
-	public List<Ability> getUsableAbilities()
+	public List<Ability> GetUsableAbilities()
 	{	
 		if (!inProgress)
 		{
-			return getUnlockedAbilities();
+			return GetUnlockedAbilities();
 		}
 		
 		return new List<Ability>();
@@ -139,15 +152,18 @@ public class ActionBar : Stateful<Ability>
 	
 	/* 
       Locks while ability is being executed. Unlocked by containingActionBar when
-      inProgress is setto false. Also sets inProgress on the containing ActionBar to false 
+      inProgress is set to false. Also sets inProgress on the containing ActionBar to false 
       when ability finishes.
 	*/
 	public class AbilityBox
 	{
 		public ActionBar containingActionBar;
 		public List<Ability> abilities;
+		/* Starts as the first in the list supplied to the constructor. */
 		public Ability currAbility;
+		/* Touched by containing action bar. */
 		public bool isLocked;
+		/* The index of the currAbility. */
 		public int lastAbilityIdx;
 		
 		/* Be sure states are in order. States rotate in index order. */
@@ -156,28 +172,30 @@ public class ActionBar : Stateful<Ability>
 			containingActionBar = actionBar;
 			abilities = states;
 			lastAbilityIdx = 0;
+			currAbility = states[lastAbilityIdx];
 			isLocked = false;
 		}
 		
-		/* The ability executed will lock . */
+		/* The ability executed will unlock the containig action bar, which will unlock this ability box. */
 		public bool execute (GameObject user)
 		{
 			if (!isLocked)
 			{
-				currAbility = abilities[lastAbilityIdx];
-				abilities[lastAbilityIdx].execute(user, containingActionBar);
+				currAbility.execute(user, containingActionBar);
 				isLocked = true;
+				Debug.Log("executed ability from action bar");
 				return true;
 			}
 			
 			return false;
 		}
 		
+		/* If success then load next, if not go back to the first one. */
 		public void loadNextAbility(bool success)
 		{
 			if (success)
 			{
-				if (lastAbilityIdx >= abilities.Count)
+				if (lastAbilityIdx >= abilities.Count - 1)
 				{
 					lastAbilityIdx = 0;
 				}
@@ -190,6 +208,8 @@ public class ActionBar : Stateful<Ability>
 			{
 				lastAbilityIdx = 0;
 			}
+			
+			currAbility = abilities[lastAbilityIdx];
 		}
 	}
 }
