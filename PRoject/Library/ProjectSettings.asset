@@ -3,14 +3,24 @@
 --- !u!129 &1
 PlayerSettings:
   m_ObjectHideFlags: 0
+<<<<<<< HEAD
   serializedVersion: 7
   AndroidProfiler: 0
   defaultScreenOrientation: 4
   targetDevice: 2
+=======
+  serializedVersion: 6
+  AndroidProfiler: 0
+  defaultScreenOrientation: 4
+  targetDevice: 2
+  targetGlesGraphics: 1
+  targetIOSGraphics: -1
+>>>>>>> origin/master
   targetResolution: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
   productName: BitBot
+  cloudProjectId: 
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_ShowUnitySplashScreen: 1
@@ -77,7 +87,10 @@ PlayerSettings:
   metroEnableIndependentInputSource: 0
   metroEnableLowLatencyPresentationAPI: 0
   xboxOneDisableKinectGpuReservation: 0
+<<<<<<< HEAD
   virtualRealitySupported: 0
+=======
+>>>>>>> origin/master
   productGUID: d74b94153d94b4c8e82d762cf5897a17
   AndroidBundleVersionCode: 1
   AndroidMinSdkVersion: 9
@@ -199,7 +212,10 @@ PlayerSettings:
   ps4ApplicationParam2: 0
   ps4ApplicationParam3: 0
   ps4ApplicationParam4: 0
+<<<<<<< HEAD
   ps4GarlicHeapSize: 2048
+=======
+>>>>>>> origin/master
   ps4Passcode: LmKp8GTXOj0wIoF0dboNvPI7nzuyDgJz
   ps4pnSessions: 1
   ps4pnPresence: 1
@@ -211,7 +227,10 @@ PlayerSettings:
   psp2NPTrophyPackPath: 
   psp2NPSupportGBMorGJP: 0
   psp2NPAgeRating: 12
+<<<<<<< HEAD
   psp2NPTitleDatPath: 
+=======
+>>>>>>> origin/master
   psp2NPCommsID: 
   psp2NPCommunicationsID: 
   psp2NPCommsPassphrase: 
@@ -226,7 +245,10 @@ PlayerSettings:
   psp2PatchOriginalPackage: 
   psp2PackagePassword: 
   psp2KeystoneFile: 
+<<<<<<< HEAD
   psp2MemoryExpansionMode: 0
+=======
+>>>>>>> origin/master
   psp2DRMType: 0
   psp2StorageType: 0
   psp2MediaCapacity: 0
@@ -370,7 +392,10 @@ PlayerSettings:
   XboxOnePackagingOverridePath: 
   XboxOneAppManifestOverridePath: 
   XboxOnePackageEncryption: 0
+<<<<<<< HEAD
   XboxOnePackageUpdateGranularity: 2
+=======
+>>>>>>> origin/master
   XboxOneDescription: 
   XboxOneIsContentPackage: 0
   XboxOneEnableGPUVariability: 0
@@ -379,12 +404,22 @@ PlayerSettings:
   XboxOneAllowedProductIds: []
   XboxOnePersistentLocalStorageSize: 0
   intPropertyNames:
+<<<<<<< HEAD
+=======
+  - Metro::ScriptingBackend
+  - WP8::ScriptingBackend
+>>>>>>> origin/master
   - WebGL::ScriptingBackend
   - WebGL::audioCompressionFormat
   - WebGL::exceptionSupport
   - WebGL::memorySize
   - iOS::Architecture
   - iOS::ScriptingBackend
+<<<<<<< HEAD
+=======
+  Metro::ScriptingBackend: 2
+  WP8::ScriptingBackend: 2
+>>>>>>> origin/master
   WebGL::ScriptingBackend: 1
   WebGL::audioCompressionFormat: 4
   WebGL::exceptionSupport: 0
@@ -392,20 +427,29 @@ PlayerSettings:
   iOS::Architecture: 2
   iOS::ScriptingBackend: 0
   boolPropertyNames:
+<<<<<<< HEAD
   - WebGL::analyzeBuildSize
   - WebGL::dataCaching
   - WebGL::useEmbeddedResources
   WebGL::analyzeBuildSize: 0
   WebGL::dataCaching: 0
   WebGL::useEmbeddedResources: 0
+=======
+  - WebGL::dataCaching
+  WebGL::dataCaching: 0
+>>>>>>> origin/master
   stringPropertyNames:
   - WebGL::emscriptenArgs
   - WebGL::template
   WebGL::emscriptenArgs: 
   WebGL::template: APPLICATION:Default
+<<<<<<< HEAD
   firstStreamedSceneWithResources: 0
   cloudProjectId: 
   projectId: 
   projectName: 
   organizationId: 
   cloudEnabled: 0
+=======
+  firstStreamedLevelWithResources: 0
+>>>>>>> origin/master

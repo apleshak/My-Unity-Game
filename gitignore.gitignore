@@ -1,5 +1,7 @@
 .DS_Store
+PRoject/Library
 Library
+PRoject/Temp
 Temp
 *.csproj
 *.pidb
