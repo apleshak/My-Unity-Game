@@ -3,14 +3,14 @@ using System.Collections;
 
 /* Movement through a Character Controller. */
 [RequireComponent (typeof(CharacterController))]
-public class MovementCC : MonoBehaviour 
+public class MovementCC : MyMonoBehaviour 
 {
 	/* 	When a call to approach is made the coroutine flips and remembers this value. If it
 		is different furing execution the coroutine aborts. */
 	Coroutine approachCoroutine;
-	bool approaching;
-	bool inputLocked;
-	bool modeLocked;
+	bool approaching = false;
+	bool inputLocked = false;
+	bool modeLocked = false;
 	public float gravity = 2.0f;
 	public float touchDist = 0.5f;
 	public EntityBehaviour behaviour;
@@ -31,15 +31,15 @@ public class MovementCC : MonoBehaviour
 				
 				if (value == EntityBehaviour.movementModes.Slow)
 				{
-					speed = 3.0f;
+					speed = 2.0f;
 				}
 				else if (value == EntityBehaviour.movementModes.Medium)
 				{
-					speed = 8.0f;
+					speed = 5.0f;
 				}
 				else
 				{
-					speed = 15.0f;
+					speed = 8.0f;
 				}
 			}
 		}
@@ -52,9 +52,6 @@ public class MovementCC : MonoBehaviour
 	
 	void Start ()
 	{
-		approaching = false;
-		inputLocked = false;
-		modeLocked = false;
 		mode = EntityBehaviour.movementModes.Medium;
 		defaultMode = mode;
 	}
@@ -162,6 +159,30 @@ public class MovementCC : MonoBehaviour
 		
 		// Change the players rotation to this new rotation.
 		transform.rotation = newRotation;
+	}
+	
+	public static IEnumerator RotateAndSet (bool success, GameObject user, GameObject target) 
+	{
+		Vector3 targetForward = Quaternion.Euler(0, 45, 0) * (target.transform.position - user.transform.position);
+		MovementCC movement = memoizer.GetMemoizedComponent<MovementCC>(user);
+		
+		while (user.transform.forward != targetForward)
+		{
+			if (target != null && user != null)
+			{
+				targetForward = Quaternion.Euler(0, 45, 0) * (target.transform.position - user.transform.position);
+			}
+			else if (user == null)
+			{
+				success = false;
+				yield break;
+			}
+			
+			movement.Rotate(targetForward);
+			yield return null;
+		}
+		
+		success = true;
 	}
 	
 	public void Rotate (Vector3 targetForward)

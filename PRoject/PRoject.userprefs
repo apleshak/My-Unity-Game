@@ -1,18 +1,38 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/AbilityDatabase.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Mixamo/Mecanim Demo/Utilities.cs">
     <Files>
-      <File FileName="../Gnomes/Assets/MovementCC.cs" Line="217" Column="3" />
-      <File FileName="Assets/ButtonKeyBind.cs" Line="1" Column="1" />
-      <File FileName="Assets/Mixamo/Mecanim Demo/Utilities.cs" Line="81" Column="66" />
-      <File FileName="Assets/MyMonoBehaviour.cs" Line="41" Column="4" />
-      <File FileName="Assets/MovementCC2.cs" Line="1" Column="1" />
+      <File FileName="Assets/Mixamo/Mecanim Demo/Utilities.cs" Line="154" Column="46" />
+      <File FileName="Assets/Sight.cs" Line="1" Column="1" />
+      <File FileName="Assets/ActionBar.cs" Line="1" Column="1" />
+      <File FileName="Assets/Resources/EntityDatabase.cs" Line="1" Column="1" />
+      <File FileName="Assets/MyMonoBehaviour.cs" Line="1" Column="1" />
+      <File FileName="Assets/Commander.cs" Line="1" Column="1" />
       <File FileName="Assets/Dash.cs" Line="1" Column="1" />
-      <File FileName="Assets/MovementCC.cs" Line="75" Column="4" />
-      <File FileName="Assets/Commander.cs" Line="125" Column="5" />
-      <File FileName="Assets/ActionBar.cs" Line="38" Column="1" />
-      <File FileName="Assets/AbilityDatabase.cs" Line="75" Column="7" />
+      <File FileName="Assets/ComboDatabase.cs" Line="1" Column="1" />
     </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State expanded="True">
+          <Node name="Assembly-CSharp" expanded="True">
+            <Node name="Mixamo" expanded="True">
+              <Node name="Mecanim Demo" expanded="True">
+                <Node name="Utilities.cs" selected="True" />
+              </Node>
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+      <Pad Id="ClassPad">
+        <State expanded="True" selected="True" />
+      </Pad>
+      <Pad Id="MonoDevelop.Debugger.WatchPad">
+        <State />
+      </Pad>
+      <Pad Id="ConnectionManagerPad">
+        <State selected="True" />
+      </Pad>
+    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ZigZag One Two -->
+<document>
+<Combo>
+	<Graph>
+		<Edge>
+			<from>ZigZagLeft30</from>
+			<to>EnterMeleeRange</to>
+		</Edge>
+		<Edge>
+			<from>EnterMeleeRange</from>
+			<to>One</to>
+		</Edge>
+	</Graph>
+	<Graph>
+		<Edge>
+			<from>ZigZagRight30</from>
+			<to>EnterMeleeRange</to>
+		</Edge>
+		<Edge>
+			<from>EnterMeleeRange</from>
+			<to>Two</to>
+		</Edge>
+	</Graph>
+</Combo>
+
+<!-- ZigZag Twice -->
+<Combo>
+	<Graph>
+		<Edge>
+			<from>ZigZagLeft30</from>
+			<to>ZigZagRight30</to>
+		</Edge>
+	</Graph>
+	<Graph>
+		<Edge>
+			<from>ZigZagRight30</from>
+			<to>ZigZagLeft30</to>
+		</Edge>
+	</Graph>
+</Combo>
+</document>

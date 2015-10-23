@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Grab -->
+<document>
+<Ability>
+  <type>Grab</type>
+  <targeted>false</targeted>
+  <universal>false</universal>
+  <name>Grab</name>
+  <sprite_path>Abilities/Grab/Icon</sprite_path>
+  <description>Pick up the first thing underfoot</description>
+  
+  <tag>Preparatory</tag>
+  <tag>Close Range</tag>
+  <tag>Quick</tag>
+  <tag>Facing</tag>
+</Ability>
+
+<!-- Throw -->
+<Ability>
+  <type>ThrowProjectile&lt;Throw&gt;</type>
+  <targeted>false</targeted>
+  <universal>false</universal>
+  <name>Grab</name>
+  <sprite_path>Abilities/Throw/Icon</sprite_path>
+  <description>Throw whatever you have in your hand</description>
+  
+  <tag>Offensive</tag>
+  <tag>Long Range</tag>
+  <tag>Quick</tag>
+  <tag>Facing</tag>
+</Ability>
+
+<!-- One -->
+<Ability>
+  <type>One</type>
+  <targeted>false</targeted>
+  <universal>false</universal>
+  <name>One</name>
+  <sprite_path>Abilities/One/Icon</sprite_path>
+  <description>Deliver a hard left jab</description>
+  
+  <tag>Offensive</tag>
+  <tag>Close Combat</tag>
+  <tag>Facing</tag>
+  <tag>Quick</tag>
+</Ability>
+
+<!-- Two -->
+<Ability>
+  <type>Two</type>
+  <targeted>false</targeted>
+  <universal>false</universal>
+  <name>Two</name>
+  <sprite_path>Abilities/Two/Icon</sprite_path>
+  <description>Deliver a hard right straight</description>
+
+  <tag>Offensive</tag>
+  <tag>Close Combat</tag>
+  <tag>Facing</tag>
+  <tag>Quick</tag>
+</Ability>
+
+<!-- Squat -->
+<Ability>
+  <type>Squat</type>
+  <targeted>false</targeted>
+  <universal>false</universal>
+  <name>Squat</name>
+  <sprite_path>Abilities/Squat/Icon</sprite_path>
+  <description>Squat down to the ground</description>
+  
+  <tag>Preparatory</tag>
+  <tag>Movement</tag>
+  <tag>Facing</tag>
+</Ability>
+
+<!-- Dash -->
+<Ability>
+  <type>Dash</type>
+  <targeted>false</targeted>
+  <universal>false</universal>
+  <name>Dash</name>
+  <sprite_path>Abilities/Dash/Icon</sprite_path>
+  <description>Quickly move a short distance forward</description>
+  
+  <tag>Movement</tag>
+  <tag>Long Range</tag>
+  <tag>Medium</tag>
+  <tag>Facing</tag>
+</Ability>
+
+<!-- Roll -->
+<Ability>
+  <type>Roll</type>
+  <targeted>false</targeted>
+  <universal>false</universal>
+  <name>Roll</name>
+  <sprite_path>Abilities/Roll/Icon</sprite_path>
+  <description>Roll a short distance forward</description>
+  
+  <tag>Movement</tag>
+  <tag>Short Range</tag>
+  <tag>Quick</tag>
+  <tag>Facing</tag>
+</Ability>
+
+<!-- Sticky Slime -->
+<Ability>
+  <type>StickySlime</type>
+  <targeted>false</targeted>
+  <universal>false</universal>
+  <name>Sticky Slime</name>
+  <sprite_path>Abilities/Sticky Slime/Icon</sprite_path>
+  <description>Vomit sticky slime that hinders movement. Trips any who attempt to dash through</description>
+  <range>6.0f</range>
+  <angle>90.0f</angle>
+  
+  <tag>Movement Impairing</tag>
+  <tag>Projectile</tag>
+  <tag>Medium</tag>
+  <tag>Facing</tag>
+</Ability>
+
+<!-- Universals and specials -->
+
+<!-- Dummy Ability -->
+<Ability>
+  <type>DummyAbility</type>
+  <targeted>false</targeted>
+  <universal>true</universal>
+  <name>Dummy Ability</name>
+  <sprite_path>Abilities/Dummy Ability/Icon</sprite_path>
+  <description>Dummy</description>
+</Ability>
+
+<!-- FaceGameObject -->
+<Ability>
+  <type>FaceGameObject</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>FaceGameObject</name>
+</Ability>
+
+<!-- FaceGameObjectLeft30 -->
+<Ability>
+  <type>FaceGameObjectLeft30</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>FaceGameObjectLeft30</name>
+</Ability>
+
+<!-- FaceGameObjectRight30 -->
+<Ability>
+  <type>FaceGameObjectRight30</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>FaceGameObjectRight30</name>
+</Ability>
+
+<!-- BackGameObject -->
+<Ability>
+  <type>BackGameObject</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>BackGameObject</name>
+</Ability>
+
+<!-- BackGameObjectLeft30 -->
+<Ability>
+  <type>BackGameObjectLeft30</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>BackGameObjectLeft30</name>
+</Ability>
+
+<!-- BackGameObjectRight30 -->
+<Ability>
+  <type>BackGameObjectRight30</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>BackGameObjectRight30</name>
+</Ability>
+
+<!-- DashLeft30 -->
+<Ability>
+  <type>DashLeft30</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>DashLeft30</name>
+</Ability>
+
+<!-- DashRight30 -->
+<Ability>
+  <type>DashRight30</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>DashRight30</name>
+</Ability>
+
+<!-- ZigZagLeft30 -->
+<Ability>
+  <type>ZigZagLeft30</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>ZigZagLeft30</name>
+</Ability>
+
+<!-- ZigZagRight30 -->
+<Ability>
+  <type>ZigZagRight30</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>ZigZagRight30</name>
+</Ability>
+
+<!-- EnterMeleeRange -->
+<Ability>
+  <type>EnterMeleeRange</type>
+  <targeted>true</targeted>
+  <universal>true</universal>
+  <name>EnterMeleeRange</name>
+</Ability>
+</document>

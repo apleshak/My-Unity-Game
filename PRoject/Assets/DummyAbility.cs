@@ -12,11 +12,11 @@ public class DummyAbility : AbilityFSM
 		Finish
 	}
 	
-	public IEnumerator Test()
+	public IEnumerator DummyCoroutine()
 	{
-		Debug.Log("--Starting coroutine--");
-		yield return new WaitForSeconds(2);
-		Debug.Log(System.String.Format("--Coroutine over with ID: {0} --", ID));
+		Debug.Log("--Starting Dummy coroutine--");
+		yield return new WaitForSeconds(1);
+		Debug.Log(System.String.Format("-- Dummy coroutine over with ID: {0} --", ID));
 		TerminateFSM();
 	}
 	
@@ -31,7 +31,7 @@ public class DummyAbility : AbilityFSM
 	// Runs once then changes state
 	public void BeginUpdate () 
 	{
-		StartCoroutine(Test());
+		StartCoroutine(DummyCoroutine());
 		currentState = states.DoNothing;
 	}
 	
@@ -39,12 +39,17 @@ public class DummyAbility : AbilityFSM
 	{
 		currentState = states.Finish;
 		containingAbility.successful = true;
-		Debug.Log(System.String.Format("Finished dummy ability with ID: {0}", ID));
 		containingAbility.finished = true;
+		Debug.Log(System.String.Format("Finished dummy ability with ID: {0}", ID));
 	}
 	
 	public void FinishUpdate () 
 	{
 		//
+	}
+	
+	public static bool Test (GameObject user, GameObject target)
+	{
+		return true;
 	}
 }

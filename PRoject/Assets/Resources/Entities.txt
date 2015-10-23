@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+<Entity>
+	<Name>Minion</Name>
+	<ActionBar>
+		<Slot>
+			<Ability>Dash</Ability>
+		</Slot>
+		<Slot>
+			<Ability>One</Ability>
+		</Slot>
+		<Slot>
+			<Ability>Two</Ability>
+		</Slot>
+		<Slot>
+			<Ability>Dash</Ability>
+		</Slot>
+	</ActionBar>
+</Entity>
+</document>

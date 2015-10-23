@@ -15,9 +15,19 @@ public class MovementActionBar : ActionBar
 
 public class AbilityActionBar : ActionBar
 {
+	public AbilityActionBar ()
+	{
+		return;
+	}
+	
 	public AbilityActionBar (GameObject owner) : base(owner)
 	{
 		return;
+	}
+	
+	public AbilityActionBar DeepCopy ()
+	{
+		return base.DeepCopy<AbilityActionBar>();
 	}
 }
 
@@ -61,11 +71,35 @@ public class ActionBar : Stateful<Ability>
 		}
 	}
 	
+	public ActionBar ()
+	{
+		lastBoxIdx = 0;
+		abilityBoxes = new List<AbilityBox>();
+		inProgress = false;
+	}
+	
 	public ActionBar (GameObject Owner)
 	{
 		lastBoxIdx = 0;
 		abilityBoxes = new List<AbilityBox>();
 		inProgress = false;
+		owner = Owner;
+	}
+	
+	public T DeepCopy<T> () where T : ActionBar, new()
+	{
+		T copy = new T();
+		
+		foreach (AbilityBox abilityBox in abilityBoxes)
+		{
+			copy.AddAbilityBox(abilityBox.DeepCopy(copy));
+		}
+		
+		return copy;
+	}
+	
+	public void SetOwner (GameObject Owner)
+	{
 		owner = Owner;
 	}
 	
@@ -75,12 +109,16 @@ public class ActionBar : Stateful<Ability>
 	}
 	
 	/* Never call with stack-allocated lists. */
-	public void addAbilityBox (List<Ability> abilities)
+	public void AddAbilityBox (List<Ability> abilities)
 	{
 		AbilityBox newBox = new AbilityBox(abilities, this);
 		abilityBoxes.Add(newBox);
 	}
 	
+	public void AddAbilityBox (AbilityBox ability)
+	{
+		abilityBoxes.Add(ability);
+	}
 	/* 
 	   Still cheap if we only have a few abilities. Also sets currState in accordance with 
 	   being Stateful and sets inProgress to true.
@@ -125,9 +163,22 @@ public class ActionBar : Stateful<Ability>
 		return false;
 	}
 	
-	public List<Ability> GetUnlockedAbilities()
+	public HashSet<Ability> GetAllAbilities ()
 	{
-		List<Ability> unlockedAbilities = new List<Ability>();
+		HashSet<Ability> abilities = new HashSet<Ability>();
+		
+		foreach (AbilityBox abilityBox in abilityBoxes)
+		{
+			abilities.UnionWith(abilityBox.abilities);
+		}
+		
+		return abilities;
+	}
+	
+	/* The abilities not currently in use. */
+	public HashSet<Ability> GetUnlockedAbilities ()
+	{
+		HashSet<Ability> unlockedAbilities = new HashSet<Ability>();
 		
 		foreach (AbilityBox abilityBox in abilityBoxes)
 		{
@@ -140,14 +191,15 @@ public class ActionBar : Stateful<Ability>
 		return unlockedAbilities;
 	}
 	
-	public List<Ability> GetUsableAbilities()
+	/* The abilities we can use right now. None if we are executing an ability. */
+	public HashSet<Ability> GetUsableAbilities ()
 	{	
 		if (!inProgress)
 		{
 			return GetUnlockedAbilities();
 		}
 		
-		return new List<Ability>();
+		return new HashSet<Ability>();
 	}
 	
 	/* 
@@ -174,6 +226,11 @@ public class ActionBar : Stateful<Ability>
 			lastAbilityIdx = 0;
 			currAbility = states[lastAbilityIdx];
 			isLocked = false;
+		}
+		
+		public AbilityBox DeepCopy (ActionBar ContainingActionBar)
+		{
+			return new AbilityBox(abilities, ContainingActionBar);
 		}
 		
 		/* The ability executed will unlock the containig action bar, which will unlock this ability box. */

@@ -1,6 +1,10 @@
 using UnityEngine;
+using System.Linq;
 using System.Collections.Generic;
 using Minion = Tuple<AbilityActionBar, UnityEngine.GameObject>;
+using MinionAction = System.Func<UnityEngine.GameObject, UnityEngine.GameObject, System.Collections.IEnumerator>;
+using Combo = ComboDatabase.Combo;
+
 /* 
 	The Commander governs all non-idle AI FSMs. Each Commander has
 	its own group of AIs. The Commander queries the Oracle for the
@@ -11,13 +15,17 @@ using Minion = Tuple<AbilityActionBar, UnityEngine.GameObject>;
 	
 	TODO: remove dependence on "Player" tag from Instatiotor
 	TODO: only update oracle when the target/player switches states
+	TODO: when one entity in a combo finishes return it to the Minion pool immediately
+	TODO: change this whole fucking thing to use gameobjects or Minions - CHOOOOOOOOSE!!!!
 */
 public class Commander
 {
 	GameObject player;
 	Oracle<Ability> oracle;
-	HashSet<Minion> minions;
+	HashSet<Minion> busyMinions;
+	HashSet<Minion> freeMinions;
 	AbilityDatabase abilityDatabase;
+	ComboDatabase comboDatabase;
 	enum minionActions
 	{
 		Move,
@@ -25,27 +33,43 @@ public class Commander
 		Defend
 	}
 	
-	public Commander (AbilityDatabase AbilityDatabase)
+	public Commander (AbilityDatabase AbilityDatabase, ComboDatabase ComboDatabase)
 	{
 		player = MyMonoBehaviour.player;
 		oracle = new Oracle<Ability>(MyMonoBehaviour.playerDescriptor.abilityBar);
-		minions = new HashSet<Minion>();
+		busyMinions = new HashSet<Minion>();
+		freeMinions = new HashSet<Minion>();
 		abilityDatabase = AbilityDatabase;
-	}
-	
-	public void SetDatabase (AbilityDatabase database)
-	{
-		abilityDatabase = database;
+		comboDatabase = ComboDatabase;
 	}
 	
 	public void AddMinion (Minion minion)
 	{
-		minions.Add(minion);
+		freeMinions.Add(minion);
+	}
+	
+	public void FreeMinion (Minion minion)
+	{
+		if (busyMinions.Contains(minion))
+		{
+			freeMinions.Add(minion);
+			busyMinions.Remove(minion);
+		}
+	}
+	
+	public void RemoveMinions (ICollection<GameObject> collection)
+	{
+		foreach (GameObject obj in collection)
+		{
+			EntityDescriptor descr = MyMonoBehaviour.memoizer.GetMemoizedComponent<EntityDescriptor>(obj);
+			RemoveMinion(new Tuple<AbilityActionBar, GameObject>(descr.abilityBar, obj));
+		}
 	}
 	
 	public void RemoveMinion (Minion minion)
 	{
-		minions.Remove(minion);
+		freeMinions.Remove(minion);
+		busyMinions.Remove(minion);
 	}
 	
 	Minion GetClosestMinion (Vector3 position)
@@ -53,7 +77,7 @@ public class Commander
 		Minion closestMinion = null;
 		float closestDist = float.MaxValue;
 		
-		foreach (Minion minion in minions)
+		foreach (Minion minion in freeMinions)
 		{
 			float distance = Vector3.Distance(position, minion.second.transform.position);
 			
@@ -68,48 +92,26 @@ public class Commander
 	}
 	
 	/* Move minion towards a location. */
-	void MinionApproach (Minion minion, Vector3 position)
+	void MinionApproach (Minion minion, Vector3 targetPosition)
 	{
 		MovementCC minionMovement = MyMonoBehaviour.memoizer.GetMemoizedComponent<MovementCC>(minion.second);
-		minionMovement.Move(position - minion.second.transform.position);
+		minionMovement.Move(targetPosition - minion.second.transform.position);
 	}
+	
 	
 	/* 	Return enum telling what type of action is best for the minion. If we memorize the calls made
 		we can alter new minion actions based on past decisions.*/
+		/*
 	minionActions ChooseMinionAction (Minion minion)
 	{
 		return minionActions.Attack;
 	}
-	
-	/* Returns best ability for the minion to use. */
-	Ability ChooseMinionAbility (Minion minions, minionActions actionType)
-	{
-		return null;
-	}
-	
-	/* Scores the options of a minion against the player action. No future analysis. Only currently available abilities. */
-	/* Can use AB-pruning to get clearer picture.*/
-	float ScoreMinion (Minion minion, Ability playerAction)
-	{
-		float score = 0.0f;
-		
-		foreach (Ability ability in minion.first.GetUnlockedAbilities())
-		{
-			if (ability.targeted && ability.inRange(minion.second.transform.position, 
-													player.transform.position, minion.second.transform.forward))
-			{
-				score += abilityDatabase.CompareAbilities(ability, playerAction);
-			}
-			else
-			{
-			
-			}
-		}
-		
-		return score;
-	}
-	
-	int MinionGroupEval (HashSet<Minion> set)
+	*/
+
+	/* 	Evaluates a group of minions by taking the maximum from all possible assignments.
+		1) Generate all permutations of set
+		2) Evaluate the assignments  */
+	float MinionGroupEval (ICollection<Minion> set)
 	{
 		if (set.Count == 0)
 		{
@@ -117,40 +119,59 @@ public class Commander
 		}
 		else
 		{
-			HashSet<AbilityActionBar> actionBars = new HashSet<AbilityActionBar>();
-			
-			foreach (Minion minion in set)
-			{
-				actionBars.Add(minion.first);
-			}
-			
-			return abilityDatabase.ComboEval(actionBars);
+			HashSet<GameObject> gameObjects = Utilities.Map<Minion, GameObject, HashSet<GameObject>>(set, (a) => 
+				{return a.second;});
+			float result = comboDatabase.FindBestComboScore(gameObjects);
+			return result;
 		}
 	}
 	
-	/* Lets not goldplate this just yet. */
-	public void CommandMinions()
+	// TODO: make it actually use the oracle's prediction.
+	public void CommandMinions ()
 	{
-		/* GOOD ENOUGH */
-		/* 	1) Find player action
-			2) Find all possible combos and take the best ones. 
-			3) Check for and perform tactical combinations selecting the best ones.
-		*/
-		/* Find what Ability the player will use next. */
+		// Find what Ability the player will use next.
 		Ability playerAction = oracle.nextState;
 		
-		/* Find best combo grouping. */
-		HashSet<HashSet<Minion>> bestGrouping = Utilities.BestGrouping<Minion>(minions, MinionGroupEval);
+		//Edge case
+		if (freeMinions.Count == 0)
+			return;
+			
+		// If we only have one minion to command right now, make it do the most effective ability available.
+		if (freeMinions.Count == 1)
+		{
+			Tuple<AbilityActionBar, GameObject> minion = freeMinions.First<Minion>();
+			Ability bestCounter = abilityDatabase.GetBestCounter(playerAction, player, minion.first.GetUsableAbilities(), minion.second);
+			minion.first.execute(bestCounter);
+		}
+		
+		// Find best combo grouping.
+		Tuple<HashSet<HashSet<Minion>>, float> bestGrouping = Utilities.GetBestGrouping<Minion>(freeMinions, MinionGroupEval);
+		
+		foreach (HashSet<Minion> group in bestGrouping.first)
+		{
+			List<Minion> listView = group.ToList();
+			List<GameObject> gameObjectListView = Utilities.Map<Minion, GameObject, List<GameObject>>(listView, (a) => {return a.second;});
+			
+			//this is the redundant work. we're recomputing the best assigment even though bestGrouping did it too
+			Tuple<List<GameObject>, Combo, float> bestOption = comboDatabase.FindBestCombo(gameObjectListView);
+			//this is not redundant only because it uses the order supplied.
+			
+			bestOption.second.SetCommander(this);
+			bestOption.second.AssignInOrder(bestOption.first);
+			bestOption.second.Run();
+			RemoveMinions(bestOption.first);
+		}
 	}
 	
 	/* Populates the level with entities. Maybe marshal the level structure to decouple this class from LevelBuilder. */
 	public void PopulateLevel (LevelBuilder level)
 	{
-	
+		
 	}
 	
 	public void Update () 
-	{
+	{		
 		oracle.Update();
+		CommandMinions();
 	}
 }

@@ -21,6 +21,7 @@ public class LevelBuilder
 			270.0f, 292.5f, 315.0f, 337.5f,
 		};
 	public Vector3 levelStart;
+	public Vector3 playerStart;
 	public Vector3 origin = new Vector3(0.0f, 0.0f, 0.0f); 
 	public int nodes;
 	public int maxEdges;
@@ -35,6 +36,37 @@ public class LevelBuilder
 		buildingSpawner = new BuildingSpawner();
 		generateGraph(nodes, MaxEdges);
 		configureDirections(start, origin);
+		playerStart = new Vector3(0, 0, 2);
+	}
+	
+	//Give each commander 2 minions for now
+	public void AssignMinions (HashSet<Commander> commanders)
+	{
+		Object minionPrefab = MyMonoBehaviour.memoizer.GetMemoizedPrefab("Prefabs/Entities/Minion");
+		
+		foreach (Commander commander in commanders)
+		{
+			AssignMinion(commander);
+			AssignMinion(commander);
+		}
+	}
+	
+	//Creates minion from prefab with locked movement (so that player input never moves it)
+	void AssignMinion (Commander commander)
+	{
+		Object minionPrefab = MyMonoBehaviour.memoizer.GetMemoizedPrefab("Prefabs/Entities/Minion");
+		GameObject minion = (GameObject)GameObject.Instantiate<Object>(minionPrefab);
+		
+		EntityDescriptor minionDescr = MyMonoBehaviour.memoizer.GetMemoizedComponent<EntityDescriptor>(minion);
+		AbilityActionBar minionAbilityBar = MyMonoBehaviour.entityDatabase.GetEntityActionBar("Minion");
+		minionAbilityBar.SetOwner(minion);
+		minionDescr.abilityBar = minionAbilityBar;
+		
+		MovementCC movement = MyMonoBehaviour.memoizer.GetMemoizedComponent<MovementCC>(minion);
+		movement.lockInput();
+		
+		minionDescr.abilityBar = minionAbilityBar;
+		commander.AddMinion(new Tuple<AbilityActionBar, GameObject>(minionAbilityBar, minion));
 	}
 	
 	void generateGraph (int Nodes, int MaxEdges)

@@ -11,10 +11,6 @@ public interface ISense
 	/* Removes all traces of a target. */
 	void DropTarget ();
 	
-	/* Returns the last known location of the last target tracked. Independent of whether
-	   we have a target or not. Can return null for edge cases. */
-	UnityEngine.Vector3 GetLastPosition ();
-	
 	/* Sets the behaviour of the sense. */
 	void SetBehaviour (EntityBehaviour behaviour);
 }

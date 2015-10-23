@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class Stun : AbilityFSM 
@@ -24,7 +24,7 @@ public class Stun : AbilityFSM
 		
 		/* Find the anchor and child the stun prefab to it. */
 		Transform stunAnchor = transform.FindChild("StunAnchor");
-		stunPrefab = memoizer.GetMemoizedPrefab("Abilities/Stun", "StunPrefab");
+		stunPrefab = memoizer.GetMemoizedAbilityPrefab("Stun", "StunPrefab");
 		stunObject = (GameObject)Instantiate(stunPrefab, stunAnchor.position, Quaternion.identity);
 		stunObject.transform.SetParent(stunAnchor);
 		

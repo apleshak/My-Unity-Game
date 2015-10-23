@@ -37,30 +37,55 @@ public class EntityBehaviour
 		Fast
 	};
 	
-	public EntityBehaviour (float sRange, float sAngle, float sPersistTime, float reactTime, 
+	public EntityBehaviour (float sRange, float sAngle, float hRange, float sPersistTime, float hPersistTime, float reactTime, 
 							HashSet<string> hostileSet, sightModes sMode, hearingModes hMode)
 	{
 		sightRange = sRange;
 		sightAngle = sAngle;
 		sightPersistTime = sPersistTime;
+		hearingPersistTime = hPersistTime;
 		reactionTime = reactTime;
 		hostiles = hostileSet;
 		sightMode = sMode;
 		hearingMode = hMode;
+		hearingRange = hRange;
+		movementMode = movementModes.Medium;
+	}
+	
+	public EntityBehaviour (float sRange, float sAngle, float hRange, float sPersistTime, float hPersistTime, float reactTime, 
+	                        HashSet<string> hostileSet, sightModes sMode, hearingModes hMode, movementModes mMode)
+	{
+		sightRange = sRange;
+		sightAngle = sAngle;
+		sightPersistTime = sPersistTime;
+		hearingPersistTime = hPersistTime;
+		reactionTime = reactTime;
+		hostiles = hostileSet;
+		sightMode = sMode;
+		hearingMode = hMode;
+		hearingRange = hRange;
+		movementMode = mMode;
 	}
 	
 	public static EntityBehaviour GetBehaviour (string tag) 
 	{
-		if (tag == "Some Enemy")
+		if (tag == "Minion")
 		{
 			HashSet<string> hostiles = new HashSet<string>();
-			hostiles.Add("Some Other Enemy");
+			hostiles.Add("Some Other Entity");
 			
-			return new EntityBehaviour(42, 42, 42, 0.01f, hostiles, sightModes.Closest, hearingModes.Closest);
+			return new EntityBehaviour(10, 180, 15, 10, 10, 0.01f, hostiles, sightModes.Closest, hearingModes.Closest);
 		}
 		else
 		{
 			return null;
 		}
+	}
+	
+	public static EntityBehaviour GetMinionBehaviour ()
+	{
+		HashSet<string> hostiles = new HashSet<string>();
+		hostiles.Add("Player");
+		return new EntityBehaviour(10, 180, 15, 10, 10, 0.01f, hostiles, sightModes.Closest, hearingModes.Closest);
 	}
 }

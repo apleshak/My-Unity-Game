@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using EntityAction = System.Func<UnityEngine.GameObject, UnityEngine.GameObject, System.Collections.IEnumerator>;
 
 public class MyMonoBehaviour : MonoBehaviour 
 {
@@ -15,11 +16,19 @@ public class MyMonoBehaviour : MonoBehaviour
 	public static Memoizer memoizer;
 	public static LevelBuilder levelBuilder;
 	public static AbilityDatabase abilityDatabase;
-	public static Commander commander;
+	public static ComboDatabase comboDatabase;
+	public static EntityDatabase entityDatabase;
+	public static HashSet<Commander> commanders;
+	
+	/* File locations within. */
+	string abilityXMLFile = "Assets/Resources/Abilities.txt";
+	string comboXMLFile = "Assets/Resources/Combos.txt";
+	string entityXMLFile = "Assets/Resources/Entities.txt";
 	
 	/* Necessary to avoid multiple instantiations. */
 	static bool initializedNonMonos = false;
-	
+	static bool updatedNonMonos = false;
+
 	/* Instantiates non-MonoBehaviours and utilities. */
 	void Awake ()
 	{
@@ -27,35 +36,59 @@ public class MyMonoBehaviour : MonoBehaviour
 		{
 			if (showDebug) Debug.Log("_____MyMonoBehaviour: Performing first-time initialization_____");
 			
-			/* Utilities */
+			//Set this immediately so that subsequent initializations of player and minions don't make a loop
+			initializedNonMonos = true;
 			instance = this;
 			
 			InstantiateDatabases();
-			InstantiateAbilities();
 			InstantiateLevel();
 			
 			InstantiatePlayer();
 			InstantiateCommander();
 			
-			initializedNonMonos = true;
-			
 			if (showDebug) Debug.Log("_____MyMonoBehaviour: First-time initialization complete_____");
+			Debug.Log ("");
 		}
 	}
 	
 	/* Updates all non-MonoBehaviours. */
 	void Update ()
 	{
-		commander.Update();
-		levelBuilder.debugVisualize();
+		if (!updatedNonMonos)
+		{
+			foreach (Commander commander in commanders)
+			{
+				commander.Update();
+			}
+			
+			//levelBuilder.debugVisualize();
+			updatedNonMonos = true;
+		}
 	}
 	
-	/* After this we can instatntiate abilities.*/
+	//After all updates have run reset update status on commanders
+	void LateUpdate ()
+	{
+		updatedNonMonos = false;
+	}
+	
+	/* After this we can instatntiate abilities and combos.*/
 	void InstantiateDatabases ()
 	{
 		if (showDebug) Debug.Log("MyMonoBehaviour: Instantiating databases...");
 		
-		abilityDatabase = new AbilityDatabase();
+		if (showDebug) Debug.Log("MyMonoBehaviour: Instantiating abilities...");
+		abilityDatabase = Utilities.XMLParser.ParseAbilities(abilityXMLFile);
+		if (showDebug) Debug.Log(string.Format("MyMonoBehaviour: Finished instantiating {0} abilities, of them {1} universal!", abilityDatabase.Count(), abilityDatabase.universalAbilities.Count));
+		
+		if (showDebug) Debug.Log("MyMonoBehaviour: Instantiating combos...");
+		comboDatabase = Utilities.XMLParser.ParseCombos(comboXMLFile, abilityDatabase);
+		if (showDebug) Debug.Log(string.Format("MyMonoBehaviour: Finished instantiating {0} combos!", comboDatabase.Count()));
+		
+		if (showDebug) Debug.Log("MyMonoBehaviour: Instantiating entities...");
+		entityDatabase = Utilities.XMLParser.ParseEntities(entityXMLFile, abilityDatabase);
+		if (showDebug) Debug.Log(string.Format("MyMonoBehaviour: Finished instantiating {0} entities!", entityDatabase.Count()));
+		
 		memoizer = new Memoizer();
 		
 		if (showDebug) Debug.Log("MyMonoBehaviour: Finished instantiating databases!");
@@ -66,135 +99,13 @@ public class MyMonoBehaviour : MonoBehaviour
 	{
 		if (showDebug) Debug.Log("MyMonoBehaviour: Instantiating commander...");
 		
-		commander = new Commander(abilityDatabase);
-		commander.PopulateLevel(levelBuilder);
+		commanders = new HashSet<Commander>();
+		commanders.Add(new Commander(abilityDatabase, comboDatabase));
+		levelBuilder.AssignMinions(commanders);
 		
 		if (showDebug) Debug.Log("MyMonoBehaviour: Finished instantiating commander!");
 	}
-	
-	
-	/* After this the abilityDatabase can be used to make abilities. */
-	/* TODO: optimize by opening from one file descriptor. */
-	void InstantiateAbilities ()
-	{
-		if (showDebug) Debug.Log("MyMonoBehaviour: Instantiating abilities...");
-		
-		//Grab____________________________________________________________________________
-		Type grabType = typeof(Grab);
-		Sprite grabIcon = Resources.Load<Sprite>("Abilities/Grab/Icon");
-		HashSet<string> grabTags = new HashSet<string>();
-		grabTags.Add("Preperatory");
-		grabTags.Add("Close Combat");
-		grabTags.Add ("Facing");
-		grabTags.Add ("Quick");
-		string grabDescription = "Pick up the first thing underfoot.";
-		
-		Ability grab = new Ability(grabType, grabIcon, "Grab", grabDescription, grabTags);
-		abilityDatabase.addAbility(grab);
-		
-		//Throw____________________________________________________________________________
-		Type throwType = typeof(ThrowProjectile<Throw>);
-		Sprite throwIcon = Resources.Load<Sprite>("Abilities/Throw/Icon");
-		HashSet<string> throwTags = new HashSet<string>();
-		throwTags.Add("Offensive");
-		throwTags.Add("Ranged");
-		throwTags.Add ("Facing");
-		string throwDescription = "Throw whatever you have in your hand.";
-		
-		Ability throwAbility = new Ability(throwType, throwIcon, "Throw", throwDescription, throwTags);
-		abilityDatabase.addAbility(throwAbility);
-		
-		//One____________________________________________________________________________
-		Type oneType = typeof(One);
-		Sprite oneIcon = Resources.Load<Sprite>("Abilities/One/Icon");
-		HashSet<string> oneTags = new HashSet<string>();
-		oneTags.Add("Offensive");
-		oneTags.Add("Close Combat");
-		oneTags.Add ("Facing");
-		oneTags.Add ("Quick");
-		string oneDescription = "Deliver a hard left jab.";
-		
-		Ability one = new Ability(oneType, oneIcon, "One", oneDescription, oneTags);
-		abilityDatabase.addAbility(one);
-		
-		//Two____________________________________________________________________________
-		Type twoType = typeof(Two);
-		Sprite twoIcon = Resources.Load<Sprite>("Abilities/Two/Icon");
-		HashSet<string> twoTags = new HashSet<string>();
-		twoTags.Add("Offensive");
-		twoTags.Add("Close Combat");
-		twoTags.Add ("Facing");
-		twoTags.Add ("Slow");
-		string twoDescription = "Deliver a hard right straight.";
-		
-		Ability two = new Ability(twoType, twoIcon, "Two", twoDescription, twoTags);
-		abilityDatabase.addAbility(two);
-		
-		//Squat____________________________________________________________________________
-		Type squatType = typeof(Squat);
-		Sprite squatIcon = Resources.Load<Sprite>("Abilities/Squat/Icon");
-		HashSet<string> squatTags = new HashSet<string>();
-		squatTags.Add("Preperatory");
-		squatTags.Add("Movement");
-		squatTags.Add ("Facing");
-		string squatDescription = "Quickly squat down to the ground.";
-		
-		Ability squat = new Ability(squatType, squatIcon, "Squat", squatDescription, squatTags);
-		abilityDatabase.addAbility(squat);
-		
-		//Dash____________________________________________________________________________
-		Type dashType = typeof(Dash);
-		Sprite dashIcon = Resources.Load<Sprite>("Abilities/Dash/Icon");
-		HashSet<string> dashTags = new HashSet<string>();
-		dashTags.Add("Movement");
-		dashTags.Add("Quick");
-		dashTags.Add("Long");
-		dashTags.Add ("Facing");
-		string dashDescription = "Quickly move a short distance forward.";
-		
-		Ability dash = new Ability(dashType, dashIcon, "Dash", dashDescription, dashTags);
-		abilityDatabase.addAbility(dash);
-		
-		//Roll____________________________________________________________________________
-		Type rollType = typeof(Roll);
-		Sprite rollIcon = Resources.Load<Sprite>("Abilities/Roll/Icon");
-		HashSet<string> rollTags = new HashSet<string>();
-		rollTags.Add("Movement");
-		rollTags.Add("Quick");
-		rollTags.Add("Short");
-		rollTags.Add ("Facing");
-		string rollDescription = "Roll a short distance forward.";
-		
-		Ability roll = new Ability(rollType, rollIcon, "Roll", rollDescription, rollTags);
-		abilityDatabase.addAbility(roll);
-		
-		//Sticky Slime____________________________________________________________________
-		Type stickySlimeType = typeof(StickySlime);
-		Sprite stickySlimeIcon = Resources.Load<Sprite>("Abilities/Sticky Slime/Icon");
-		HashSet<string> stickySlimeTags = new HashSet<string>();
-		stickySlimeTags.Add("Movement Impairing");
-		stickySlimeTags.Add("Projectile");
-		stickySlimeTags.Add ("Facing");
-		string stickySlimeDescription = "Vomit sticky slime that hinders movement. Trips any who attempt to dash through.";
-		
-		Ability stickySlime = new Ability(stickySlimeType, stickySlimeIcon, "Sticky Slime", 
-		                                  stickySlimeDescription, stickySlimeTags, 6.0f, 90.0f);
-		abilityDatabase.addAbility(stickySlime);
-		
-		//Dummy Ability____________________________________________________________________
-		Type dummyAbilityType = typeof(DummyAbility);
-		Sprite dummyAbilityIcon = Resources.Load<Sprite>("Abilities/Dummy Ability/Icon");
-		HashSet<string> dummyAbilityTags = new HashSet<string>();
-		stickySlimeTags.Add("BS");
-		string dummyAbilityDescription = "bs boyz";
-		
-		Ability dummyAbility = new Ability(dummyAbilityType, dummyAbilityIcon, "Dummy Ability", 
-		                                   dummyAbilityDescription, dummyAbilityTags, 6.0f, 90.0f);
-		abilityDatabase.addAbility(dummyAbility);
-		
-		if (showDebug) Debug.Log("MyMonoBehaviour: Finished instantiating abilities!");
-	}
-	
+
 	/* After this the payerAbilityActionBar is ready to be given to the player. */
 	AbilityActionBar InstantiatePlayerAbilityActionBar ()
 	{
@@ -205,24 +116,24 @@ public class MyMonoBehaviour : MonoBehaviour
 		
 		List<Ability> startingAbilities1 = new List<Ability>();
 		startingAbilities1.Add(abilityDatabase.GetAbility("Dash"));
-		startingAbilities1.Add(abilityDatabase.GetAbility("Dummy Ability"));
-		playerAbilityActionBar.addAbilityBox(startingAbilities1);
+		playerAbilityActionBar.AddAbilityBox(startingAbilities1);
 		
 		List<Ability> startingAbilities2 = new List<Ability>();
 		startingAbilities2.Add(abilityDatabase.GetAbility("Dummy Ability"));
 		startingAbilities2.Add(abilityDatabase.GetAbility("Dummy Ability"));
-		playerAbilityActionBar.addAbilityBox(startingAbilities2);
+		playerAbilityActionBar.AddAbilityBox(startingAbilities2);
 		
 		List<Ability> startingAbilities3 = new List<Ability>();
-		startingAbilities3.Add(abilityDatabase.GetAbility("Dash"));
-		playerAbilityActionBar.addAbilityBox(startingAbilities3);
+		startingAbilities3.Add(abilityDatabase.GetAbility("Dummy Ability"));
+		//startingAbilities3.Add(abilityDatabase.GetAbility("Dash"));
+		playerAbilityActionBar.AddAbilityBox(startingAbilities3);
 		
 		List<Ability> startingAbilities4 = new List<Ability>();
 		startingAbilities4.Add(abilityDatabase.GetAbility("Dummy Ability"));
-		startingAbilities4.Add(abilityDatabase.GetAbility("Dummy Ability"));
-		startingAbilities4.Add(abilityDatabase.GetAbility("Dash"));
-		startingAbilities4.Add(abilityDatabase.GetAbility("Dash"));
-		playerAbilityActionBar.addAbilityBox(startingAbilities4);
+		//startingAbilities4.Add(abilityDatabase.GetAbility("Dummy Ability"));
+		//startingAbilities4.Add(abilityDatabase.GetAbility("Dash"));
+		//startingAbilities4.Add(abilityDatabase.GetAbility("Dash"));
+		playerAbilityActionBar.AddAbilityBox(startingAbilities4);
 		
 		if (showDebug) Debug.Log("MyMonoBehaviour: Finished instantiating player action bar!");
 		return playerAbilityActionBar;
@@ -244,7 +155,8 @@ public class MyMonoBehaviour : MonoBehaviour
 	{
 		if (showDebug) Debug.Log("MyMonoBehaviour: Instantiating player...");
 		
-		player = (GameObject)GameObject.Instantiate(Resources.Load("Player2"));
+		//Player2 has MovementCC2 which will break everything
+		player = (GameObject)GameObject.Instantiate(Resources.Load("Player2"), new Vector3(1, 1, 1), Quaternion.identity);
 		
 		if (player == null)
 		{
@@ -253,11 +165,13 @@ public class MyMonoBehaviour : MonoBehaviour
 		else
 		{
 			playerDescriptor = player.GetComponent<EntityDescriptor>();
-			if (playerDescriptor == null) Debug.Log("oh oh");
+			
+			if (playerDescriptor == null) Debug.Log("oh oh player has no descriptor");
+			
 			playerDescriptor.abilityBar = InstantiatePlayerAbilityActionBar();
-			player.transform.position = levelBuilder.levelStart;
+			//player.transform.position = levelBuilder.playerStart;
 		}
 		
 		if (showDebug) Debug.Log("MyMonoBehaviour: Finished instantiating player!");
-	}
+	}	
 }

@@ -29,7 +29,7 @@ public class StickySlime : AbilityFSM
 	{
 		currentState = states.Begin;
 		animator = memoizer.GetMemoizedComponent<Animator>(gameObject);
-		slimePrefab = memoizer.GetMemoizedPrefab("Sticky Slime", "Slime Emitter");
+		slimePrefab = memoizer.GetMemoizedAbilityPrefab("Sticky Slime", "Slime Emitter");
 	}
 	
 	/* Spawns vomit prefab, creates references and starts animaton. */

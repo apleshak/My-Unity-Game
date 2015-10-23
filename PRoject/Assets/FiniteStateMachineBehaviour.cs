@@ -6,9 +6,14 @@ using System.Collections.Generic;
 using System.Reflection;
 
 /* Interfaces between ability and the action bar that holds it. */
-public class AbilityFSM : FiniteStateMachineBehaviour
+public class AbilityFSM : FiniteStateMachineBehaviour, IStateful<Enum>
 {
 	public Ability containingAbility;
+	
+	public Enum GetCurrentState ()
+	{
+		return currentState;
+	}
 }
 
 /* FiniteStateMachine base class for game entities (hence the derival from MonoBehaviour). */
@@ -70,8 +75,8 @@ public class FiniteStateMachineBehaviour : MyMonoBehaviour
 		myOnCollisionEnter = updateDelegate<Action<Collision>>("OnCollisionEnter", EmptyCollision);
 		myOnCollisionStay = updateDelegate<Action<Collision>>("OnCollisionStay", EmptyCollision);
 		myOnCollisionExit = updateDelegate<Action<Collision>>("OnCollisionExit", EmptyCollision);
-		EnterState = updateDelegate<Func<IEnumerator>>("enterState", EmptyCoroutine);
-		ExitState = updateDelegate<Func<IEnumerator>>("exitState", EmptyCoroutine);
+		EnterState = updateDelegate<Func<IEnumerator>>("EnterState", EmptyCoroutine);
+		ExitState = updateDelegate<Func<IEnumerator>>("ExitState", EmptyCoroutine);
 
 		/* Run anything that needs to be done before we can enter. */
 		if (EnterState != null)
@@ -96,17 +101,15 @@ public class FiniteStateMachineBehaviour : MyMonoBehaviour
 		return Default;
 	}
 	
-	/* Improvement can skip searching for unfound methods on objects of the same type as seen before. */
 	T getMemoizedMethod<T> (string name) where T : class
 	{
 		if (!methodMemoizer.ContainsKey(name))
 		{
 			MethodInfo newMethodInfo = GetType().GetMethod(name);
 			
-			/* Found a method! Enter it into the dictonary and return it. */
+			// Found a method! Enter it into the dictonary and return it.
 			if (newMethodInfo != null)
 			{
-				//Debug.Log("Found method!");
 				T newDelegate = System.Delegate.CreateDelegate(typeof(T), this, newMethodInfo) as T;
 				methodMemoizer[name] = newDelegate as System.Delegate;
 				return methodMemoizer[name] as T;
@@ -117,7 +120,6 @@ public class FiniteStateMachineBehaviour : MyMonoBehaviour
 			}
 		}
 
-		Debug.Log("Found memoized method!");
 		return methodMemoizer[name] as T;
 	}
 	

@@ -82,4 +82,14 @@ public class One : AbilityFSM
 		containingAbility.finished = true;
 		TerminateFSM();
 	}
+	
+	public static bool Test (GameObject user, GameObject target)
+	{
+		return Vector3.Distance(user.transform.position, target.transform.position) <= 1.0f;
+	}
+	
+	public static GameObject CommitToDummy (GameObject dummy, GameObject target)
+	{
+		return dummy;
+	}
 }

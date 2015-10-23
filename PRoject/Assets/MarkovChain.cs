@@ -19,38 +19,6 @@ public abstract class MarkovChain<T, K>
 	public abstract void recordTransition (T fromState, T toState);
 }
 
-/* K must implement IComparable */
-public class Tuple<T, K> : IComparable<Tuple<T,K>>
-{
-	public T first;
-	public K second;
-
-	public Tuple (T item1, K item2)
-	{
-		first = item1;
-		second = item2;
-	}
-	
-	/* Compares by second value */
-	public int CompareTo (Tuple<T, K> other)
-	{
-		return Comparer<K>.Default.Compare(second, other.second);
-	}
-}
-
-public class Tuple<T, K, L> : IComparable<Tuple<T, K, L>>
-{
-	public T first;
-	public K second;
-	public L third;
-	
-	/* Compares by second value */
-	public int CompareTo (Tuple<T, K, L> other)
-	{
-		return Comparer<L>.Default.Compare(third, other.third);
-	}
-}
-
 /* 
    Dictionary of dictionaries of integers. Accuracy can be changed on the fly.
    
@@ -72,8 +40,8 @@ public class HashTableMarkovChain<T> : MarkovChain<T, List<Tuple<T, int>>>
 	
 	public override T nextState (T currState)
 	{
-		if (dict[currState] == null)
-		{
+		if (currState == null || !dict.ContainsKey(currState))
+		{ 
 			return default(T);
 		}
 		

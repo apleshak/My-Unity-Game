@@ -4,8 +4,14 @@
 public class Stateful<T>
 {
 	public T currState;
+	
 }
 
+/* Anything that uses states and can be predicted. Use for ActionBar. */
+public interface IStateful<T>
+{
+	T GetCurrentState ();
+}
 /* 
 	Communicates with ActionBar script on Player object's NonMonoScriptContainer
 	script. ActionBar derives from Stateful. Since its not MonoBehaviour its 
@@ -47,7 +53,7 @@ public class Oracle<T> where T : class
 	*/
 	public void Update ()
 	{
-		if (target.currState != lastState)
+		if (lastState != default(T) && target.currState != lastState)
 		{
 			report.recordTransition(lastState, target.currState);
 			lastState = target.currState;

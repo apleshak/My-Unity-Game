@@ -14,7 +14,8 @@ public class Dash : AbilityFSM
 {
 	MovementCC movement;
 	//Animator animator;
-	float remainingDistance = 5.0f;
+	static float dashDistance = 5.0f;
+	float remainingDistance = dashDistance;
 	
 	public enum states
 	{
@@ -24,7 +25,7 @@ public class Dash : AbilityFSM
 	
 	void Start ()
 	{
-		movement = memoizer.GetMemoizedComponent<MovementCC>(this.gameObject);
+		movement = memoizer.GetMemoizedComponent<MovementCC>(gameObject);
 		movement.lockInput();
 		
 		//animator.SetBool("Dashing", true);
@@ -54,13 +55,29 @@ public class Dash : AbilityFSM
 		}
 	}
 	
+	//TODO its better to terminate her rather than FinishEnterState so that other scripts can detect 
+	//that it finished before it self-destructs
 	public void FinishUpdate ()
 	{
 		Debug.Log("Done dashing!");
 		/* Unlock player input, report completion and self-destruct. */
-		movement.unlockInput();
+		if (gameObject == player)
+			movement.unlockInput();
+			
 		//animator.SetBool("Dashing", false);
 		containingAbility.finished = true;
 		TerminateFSM();
+	}
+	
+	//Makes sure there is nothing in the way
+	public static bool Test (GameObject user, GameObject target)
+	{
+		return !Physics.Raycast(user.transform.position, user.transform.forward, dashDistance);
+	}
+	
+	public static GameObject CommitToDummy (GameObject dummy, GameObject target)
+	{
+		dummy.transform.position += dummy.transform.forward * dashDistance;
+		return dummy;
 	}
 }

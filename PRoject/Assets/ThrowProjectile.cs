@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 /* Throws projectile of type T. Successful upon release of the projectile. Finished upon animation completion. */
@@ -20,7 +20,7 @@ public class ThrowProjectile<T> : AbilityFSM where T : AbilityFSM
 		if (typeof(T) == typeof(Fireball))
 		{
 			creatingProjectile = true;
-			prefab = memoizer.GetMemoizedPrefab("Abilities/Fireball", "Fireball");
+			prefab = memoizer.GetMemoizedAbilityPrefab("Fireball", "Fireball");
 		}
 		else if (typeof(T) == typeof(Throw))
 		{

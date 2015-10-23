@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 /* Attaches to an object that has just been thrown. Determines its arc, properties and fate. */
@@ -24,7 +24,7 @@ public class Throw : AbilityFSM
 		/* Figure out what hit prefab to use. */
 		if (gameObject.tag == "Bottle")
 		{
-			hitPrefab = memoizer.GetMemoizedPrefab("Effects", "GeneralHit");
+			hitPrefab = memoizer.GetMemoizedPrefab("Effects/GeneralHit");
 			damage = 2.0f;
 		}
 		/* Actually throw the object. Give force forward and random torque. */

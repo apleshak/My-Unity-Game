@@ -808,10 +808,10 @@ GameObject:
   - 143: {fileID: 14367746}
   - 95: {fileID: 9592264}
   - 114: {fileID: 11411222}
-  - 114: {fileID: 11420874}
+  - 114: {fileID: 11416664}
   m_Layer: 0
   m_Name: Player2
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2056,7 +2056,7 @@ MonoBehaviour:
   isDead: 0
   isStunned: 0
   isKnockedDown: 0
---- !u!114 &11420874
+--- !u!114 &11416664
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -2067,7 +2067,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35cfd6d30371b4c618ff57c228445916, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gravity: 2
+  gravity: 4
   touchDist: .5
   ownerDescriptor: {fileID: 11411222}
   rotationSpeed: 15
@@ -2328,6 +2328,14 @@ Prefab:
       propertyPath: ownerDescriptor
       value: 
       objectReference: {fileID: 11411222}
+    - target: {fileID: 0}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: gravity
+      value: 4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 180830}

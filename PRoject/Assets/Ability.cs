@@ -1,17 +1,14 @@
 ﻿using UnityEngine;
+using System;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 
 /* 
    Targeted abilities require range and angle. All require a user to execute.
 */
-public class Ability
+public class Ability : IEquatable<Ability>, IEqualityComparer<Ability>
 {
-	/* 
-	   Shared between all Ability instances and used to evaluate commanders. Leave for later.
-	   ConcurrentDictionary is threadsafe btw.
-	*/
-	public static Dictionary<Ability, float> successReport = new Dictionary<Ability, float>();
 	public System.Type abilityType;
 	public bool targeted;
 	public Sprite icon;
@@ -21,7 +18,10 @@ public class Ability
 	public float range;
 	public float angle;
 	public ActionBar containingActionBar;
+	public bool universal;
 	bool Finished;
+	Func<GameObject, GameObject, bool> testFunc;
+	Func<GameObject, GameObject, GameObject> commitToDummyFunc;
 	public bool finished
 	{
 		set
@@ -66,9 +66,16 @@ public class Ability
 		}
 	}
 	
-	/* For targeted abilties. */
+	/* For initialization from XML. */
+	public Ability ()
+	{
+		Finished = false;
+		Successful = false;
+	}
+	
+	/* For non-universal targeted abilties. */
 	public Ability (System.Type AbilityType, Sprite Icon, string Name, string Description, 
-				   	HashSet<string> Tags, float Range, float Angle)
+	                HashSet<string> Tags, float Range, float Angle)
 	{
 		Finished = false;
 		Successful = false;
@@ -80,11 +87,12 @@ public class Ability
 		tags = Tags;
 		range = Range;
 		angle = Angle;
+		universal = false;
 	}
 	
-	/* For untargeted abilties. */
+	/* For non-universal untargeted abilties. */
 	public Ability (System.Type AbilityType, Sprite Icon, string Name, string Description, 
-					HashSet<string> Tags)
+	                HashSet<string> Tags)
 	{
 		Finished = false;
 		Successful = false;
@@ -94,17 +102,55 @@ public class Ability
 		name = Name;
 		description = Description;
 		tags = Tags;
+		universal = false;
+	}
+	
+	/* For targeted abilties. */
+	public Ability (System.Type AbilityType, Sprite Icon, string Name, string Description, 
+	                HashSet<string> Tags, float Range, float Angle, bool Univeral)
+	{
+		Finished = false;
+		Successful = false;
+		targeted = false;
+		abilityType = AbilityType;
+		icon = Icon;
+		name = Name;
+		description = Description;
+		tags = Tags;
+		range = Range;
+		angle = Angle;
+		universal = Univeral;
+	}
+	
+	/* For untargeted abilties. */
+	public Ability (System.Type AbilityType, Sprite Icon, string Name, string Description, 
+	                HashSet<string> Tags, bool Universal)
+	{
+		Finished = false;
+		Successful = false;
+		targeted = false;
+		abilityType = AbilityType;
+		icon = Icon;
+		name = Name;
+		description = Description;
+		tags = Tags;
+		universal = Universal;
+	}
+	
+	public override string ToString ()
+	{
+		return name;
 	}
 	
 	public Ability DeepCopy ()
 	{
 		if (targeted)
 		{
-			return new Ability(abilityType, icon, name, description, tags, range, angle);
+			return new Ability(abilityType, icon, name, description, tags, range, angle, universal);
 		}
 		else
 		{
-			return new Ability(abilityType, icon, name, description, tags);
+			return new Ability(abilityType, icon, name, description, tags, universal);
 		}
 	}
 	
@@ -118,16 +164,57 @@ public class Ability
 		return true;
 	}
 	
+	/* Attempts to find the method Test of type Func<GameObject, GameObject bool> and runs it. Returns false otherwise. */
+	//TODO memoize the mothod lookup
+	public bool Test (GameObject user, GameObject target)
+	{
+		if (testFunc != null)
+			return testFunc(user, target);
+			
+		MethodInfo mtdInfo = abilityType.GetMethod("Test");
+		
+		if (mtdInfo == null)
+			return false;
+		
+		System.Type mtdType = typeof(Func<GameObject, GameObject, bool>);
+		Func<GameObject, GameObject, bool> func = 
+			System.Delegate.CreateDelegate(mtdType, mtdInfo) as Func<GameObject, GameObject, bool>;
+		testFunc = func;
+		return func(user, target);
+	}
+	
+	//TODO memoize the mothod lookup
+	public GameObject CommitToDummy (GameObject dummy, GameObject target)
+	{
+		if (commitToDummyFunc != null)
+			return commitToDummyFunc(dummy, target);
+			
+		MethodInfo mtdInfo = abilityType.GetMethod("CommitToDummy");
+		
+		if (mtdInfo == null)
+			return null;
+		
+		System.Type mtdType = typeof(Func<GameObject, GameObject, GameObject>);
+		Func<GameObject, GameObject, GameObject> func = 
+			System.Delegate.CreateDelegate(mtdType, mtdInfo) as Func<GameObject, GameObject, GameObject>;
+		commitToDummyFunc = func;
+		return func(dummy, target);
+	}
+	
 	//TODO Try to get actionBar from user (overload)?
 	/* Ability writes back to the action bar when done. */
 	public bool execute (GameObject user, ActionBar actionBar)
 	{
-		Debug.Log("Executing from ability");
 		Finished = false;
 		Successful = false;
 		AbilityFSM addedAbility = (AbilityFSM)user.AddComponent(abilityType);
 		addedAbility.containingAbility = this;
-		containingActionBar = actionBar;
+		
+		if (!universal)
+		{
+			containingActionBar = actionBar;
+		}
+
 		return true;
 	}
 	
@@ -140,5 +227,25 @@ public class Ability
 		}
 		
 		return false;
+	}
+	
+	public bool Equals (Ability a)
+	{
+		return a.name == name;
+	}
+	
+	public bool Equals (Ability a, Ability b)
+	{
+		return a.Equals(b);
+	}
+	
+	public override int GetHashCode ()
+	{
+		return name.GetHashCode();
+	}
+	
+	public int GetHashCode (Ability a)
+	{
+		return a.name.GetHashCode();
 	}
 }
