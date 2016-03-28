@@ -56,7 +56,6 @@
      <Compile Include="Assets\BackGameObjectRight30.cs" />
      <Compile Include="Assets\ButtonKeyBind.cs" />
      <Compile Include="Assets\CameraLookAt.cs" />
-     <Compile Include="Assets\CityObject.cs" />
      <Compile Include="Assets\CityObjectDescriptor.cs" />
      <Compile Include="Assets\ClickHit.cs" />
      <Compile Include="Assets\Clicker.cs" />
@@ -109,6 +108,7 @@
      <Compile Include="Assets\Stats.cs" />
      <Compile Include="Assets\Status.cs" />
      <Compile Include="Assets\StickySlime.cs" />
+     <Compile Include="Assets\Structure.cs" />
      <Compile Include="Assets\Stun.cs" />
      <Compile Include="Assets\Test.cs" />
      <Compile Include="Assets\Throw.cs" />

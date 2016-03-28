@@ -1,48 +1,9 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/FaceGameObjectLeft30.cs">
+  <MonoDevelop.Ide.Workspace />
+  <MonoDevelop.Ide.Workbench ActiveDocument="../Dao/Dao/Assets/Scripts/_base.cs">
     <Files>
-      <File FileName="Assets/Mixamo/Mecanim Demo/Utilities.cs" Line="394" Column="1" />
-      <File FileName="Assets/MyMonoBehaviour.cs" Line="16" Column="22" />
-      <File FileName="Assets/Commander.cs" Line="149" Column="1" />
-      <File FileName="Assets/ComboDatabase.cs" Line="42" Column="3" />
-      <File FileName="Assets/FiniteStateMachine.cs" Line="56" Column="4" />
-      <File FileName="Assets/Resources/Abilities.txt" Line="130" Column="18" />
-      <File FileName="Assets/AbilityDatabase.cs" Line="30" Column="34" />
-      <File FileName="Assets/Ability.cs" Line="195" Column="15" />
-      <File FileName="Assets/Resources/Combos.txt" Line="2" Column="1" />
-      <File FileName="Assets/Memoizer.cs" Line="105" Column="41" />
-      <File FileName="Assets/FiniteStateMachineBehaviour.cs" Line="125" Column="2" />
-      <File FileName="Assets/EntitySenses.cs" Line="98" Column="1" />
-      <File FileName="Assets/Hearing.cs" Line="78" Column="5" />
-      <File FileName="Assets/ZigZagLeft30.cs" Line="37" Column="3" />
-      <File FileName="Assets/FaceGameObjectRight30.cs" Line="52" Column="1" />
-      <File FileName="Assets/Resources/EnterMeleeRange.cs" Line="21" Column="51" />
-      <File FileName="Assets/FaceGameObjectLeft30.cs" Line="51" Column="1" />
-      <File FileName="Assets/Dash.cs" Line="66" Column="4" />
+      <File FileName="../Dao/Dao/Assets/Scripts/_base.cs" Line="32" Column="88" />
     </Files>
-    <Pads>
-      <Pad Id="ProjectPad">
-        <State expanded="True">
-          <Node name="Assembly-CSharp" expanded="True">
-            <Node name="Mixamo" expanded="True">
-              <Node name="Mecanim Demo" expanded="True" />
-            </Node>
-            <Node name="Resources" expanded="True" />
-            <Node name="FaceGameObjectLeft30.cs" selected="True" />
-          </Node>
-        </State>
-      </Pad>
-      <Pad Id="ClassPad">
-        <State expanded="True" selected="True" />
-      </Pad>
-      <Pad Id="MonoDevelop.Debugger.WatchPad">
-        <State />
-      </Pad>
-      <Pad Id="ConnectionManagerPad">
-        <State selected="True" />
-      </Pad>
-    </Pads>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />

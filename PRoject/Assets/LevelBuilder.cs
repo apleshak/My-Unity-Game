@@ -1,42 +1,39 @@
 using UnityEngine;
 using System.Collections.Generic;
-
-public class Dummy
-{
-	int edges;
-	
-	public Dummy (int Edges)
-	{
-		edges = Edges;
-	}
-}
+using System.Linq;
+using G = Graph<Structure>;
+using V = Graph<Structure>.Vertex;
+//Position and forward vector
+using Orientation = Tuple<UnityEngine.Vector3, UnityEngine.Vector3>;
 
 public class LevelBuilder
 {	
-	public static float[] dirs = 
+	//TODO: add rotations beyond 90 degrees and figure out how to fill the resulting kinks
+	public static float[] rotations = 
 		{
 			0.0f, 22.5f, 45.0f, 67.5f, 
-			90.0f, 112.5f, 135.0f, 157.5f, 
-			180.0f, 202.5f, 225.0f, 247.5f,
-			270.0f, 292.5f, 315.0f, 337.5f,
+			90.0f, -22.5f, -45.0f, -67.5f, 
+			-90.0f
 		};
 	public Vector3 levelStart;
 	public Vector3 playerStart;
-	public Vector3 origin = new Vector3(0.0f, 0.0f, 0.0f); 
 	public int nodes;
+	public int minEdges;
 	public int maxEdges;
-	public Graph<Dummy, Tuple<Vector3, Vector3>> graph;
-	public Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex start;
+	int nextNodeID = 0;
 	BuildingSpawner buildingSpawner;
+	Dictionary<V, Orientation> orientationMap;
 	
-	public LevelBuilder (int Nodes, int MaxEdges)
+	public LevelBuilder (int Nodes, int MaxEdges, Vector3 levelStartPos)
 	{
 		nodes = Nodes;
 		maxEdges = MaxEdges;
+		levelStart = levelStartPos;
 		buildingSpawner = new BuildingSpawner();
-		generateGraph(nodes, MaxEdges);
-		configureDirections(start, origin);
-		playerStart = new Vector3(0, 0, 2);
+		orientationMap = new Dictionary<V, Orientation>();
+		List<G> areas = GenerateLevel(3, nodes, MaxEdges, 1, 1);
+		Dispatch(areas[0].firstVertex);
+		DebugVisualize(areas[0].firstVertex);
 	}
 	
 	//Give each commander 2 minions for now
@@ -69,116 +66,182 @@ public class LevelBuilder
 		commander.AddMinion(new Tuple<AbilityActionBar, GameObject>(minionAbilityBar, minion));
 	}
 	
-	void generateGraph (int Nodes, int MaxEdges)
+	//Generate a few areas, connect them with bridges.
+	//TODO use bridges parameters instead of linking sequentially
+	List<G> GenerateLevel (int numAreas, int maxStructuresPerArea, int maxStructureConnections, int maxBridgesPerArea, int maxBridgeLength)
 	{
-		graph = new Graph<Dummy, Tuple<Vector3, Vector3>>();
-		Dummy nextID = new Dummy(0);
-		start = graph.addVertex(nextID);
-		growGraph(nodes, nextID, maxEdges, start);
+		//Generate the areas as DAGs.
+		List<G> areas = new List<G>();
+		Dictionary<G, Tuple<V, V>> areaCentralityMap = new Dictionary<G, Tuple<V, V>>();
+		
+		//Populate the areas list and the centrality map
+		for (int i = 0; i < numAreas; i++)
+		{
+			G newArea = G.Map<int,Structure>(GenerateGraph(maxStructuresPerArea, maxStructureConnections));
+			areas.Add(newArea);
+			areaCentralityMap[newArea] = newArea.MinMaxDegree();
+		}
+		
+		//Connect the areas by linking the most central nodes of one area to the least central ones from another area.
+		//The resulting graph is still a DAG since we don't link the first and last area of areas.
+		for (int i = 0; i < numAreas - 1; i++)
+		{
+			Tuple<V, V> minMaxA = areaCentralityMap[areas[i]];
+			Tuple<V, V> minMaxB = areaCentralityMap[areas[i+1]];
+			
+			areas[i].AddEdge(minMaxA.second, minMaxB.first);
+			areas[i+i].AddEdge(minMaxA.second, minMaxB.first);
+		}
+		
+		return areas;
 	}
 	
-	/* Depth-first, recursive graph creation. Nodes is the length of the main path. */
-	Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex growGraph (int Nodes, Dummy nextID, int MaxEdges,
-												Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex source)
+	//Creates a graph with N nodes, where any node can have at most maxEdges edges
+	G GenerateGraph (int N, int maxEdges)
 	{
-		Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex newEdgeNode = null;
-
-		for (int i = 0; i < Nodes; i++)
+		nextNodeID += 1;
+		G graph = new G();
+		V startVertex = graph.AddVertex(nextNodeID);
+		GrowGraph(graph, N, nextNodeID, maxEdges, startVertex);
+		return graph;
+	}
+	
+	// Depth-first, recursive graph creation starting from source. Returns last vertex spawned and the number of 
+	//vertecies spawned.
+	Tuple<V, int> GrowGraph (G graph, int Nodes, int nextID, int MaxEdges, V source)
+	{
+		V newEdgeNode = null;
+		int spawnedNodes = 0;
+		
+		//i only increases if we spawn nodes
+		for (int i = 0; i < Nodes;)
 		{
-			nextID = nextNodeID(nextID);
+			nextID = NextNodeID(nextID);
+			int edgesToAdd = Random.Range(0, Mathf.Min(MaxEdges, Nodes - i));
+			i += edgesToAdd;
 			
-			//TODO
-			/* Edges should be a function of the graph topology with request memory.*/
-			/* Always runs at least once. */
-			int edges = Random.Range(0, Mathf.Min(MaxEdges, Nodes - i));
-			i += edges;
-			for (; edges > 0; edges--)
+			for (; edgesToAdd > 0; edgesToAdd--)
 			{
-				/* Decide the next ID, vertex and edge. */
-				nextID = nextNodeID(nextID);
-				newEdgeNode = graph.addVertex(nextID);
-				Tuple<Vector3, Vector3> edge = new Tuple<Vector3, Vector3>(new Vector3(0,0,0), new Vector3(0,0,0));
-				graph.addEdge(source, newEdgeNode, edge);
+				// Decide the next ID, vertex and edge. Add it, then recurse on it.
+				nextID = NextNodeID(nextID);
+				newEdgeNode = graph.AddVertex(nextID);
+				graph.AddEdge(source, newEdgeNode);
 				
-				/* Recurse only if it's not the last edge to add. */
-				if (edges > 0)
-				{
-					growGraph(Nodes/2, nextID, MaxEdges, newEdgeNode);
-				}
+				if (edgesToAdd != 1)
+					i += GrowGraph(graph, (Nodes-i)/edgesToAdd, nextID, MaxEdges, newEdgeNode).second;
 			}
 			
 			/* Start at last vertex spawned (and not recursed upon). */
 			if (newEdgeNode != null)
-			{
 				source = newEdgeNode;
+			
+			spawnedNodes = i;
+		}
+		
+		return new Tuple<V, int>(source, spawnedNodes);
+	}
+	
+	int NextNodeID (int lastID)
+	{
+		nextNodeID += 1;
+		return nextNodeID;
+	}
+	
+	bool Dispatch (V root)
+	{
+		foreach (V target in root.Neighbors())
+		{
+			if (!OrientateStructures(root, target))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	//Depth-first backtracking routine to decide the position and rotation of structures.
+	//
+	//Orientation happens via:
+	//	1) Rotating the structures to align with connection points on other structures
+	//	2) Rotating structures around connection points to avoid collisions
+	bool OrientateStructures (V root, V target)
+	{
+		Structure rStruct = root.data;
+		Structure tStruct = target.data;
+		GameObject colliderObj = GameObject.Instantiate(MyMonoBehaviour.memoizer.GetMemoizedPrefab("Structures/Templates/" + tStruct.colliderName));
+		
+		//For every connector in root try to attach the structure
+		foreach (Orientation connector in rStruct.attachPoints)
+		{
+			//iterate through every possible connector alignment between connector and structure
+			foreach (Orientation alignment in tStruct.GetAlignments(rStruct.orientation))
+			{
+				//apply the alignment to the structure
+				tStruct.orientation.first = alignment.first;
+				tStruct.orientation.second = alignment.second;
+				colliderObj.transform.position = alignment.first;
+				colliderObj.transform.rotation = alignment.second;
+				
+				//rotate the aligned structure through every possible rotation
+				foreach (float rotation in rotations)
+				{
+					//need to simulate g.transform.RotateAround(point, axis, angle) on structVert.data
+					colliderObj.transform.RotateAround (connector.first, Vector3.up, rotation);
+					tStruct.orientation.second = colliderObj.transform.rotation.eulerAngles;
+					MeshCollider collider = MyMonoBehaviour.memoizer.GetMemoizedComponent<MeshCollider>(colliderObj);
+					
+					if (!HasGlobalCollision(collider) && Dispatch(target))
+						return true;
+				}
 			}
 		}
 		
-		return source;
+		GameObject.DestroyImmediate(colliderObj);
+		return false;
 	}
 	
-	Dummy nextNodeID (Dummy lastID)
+	bool HasGlobalCollision (MeshCollider C)
 	{
-		return new Dummy(42);
+		foreach (GameObject o in GameObject.FindGameObjectsWithTag("collider"))
+		{
+			if (C.bounds.Intersects(MyMonoBehaviour.memoizer.GetMemoizedComponent<MeshCollider>(o).bounds))
+				return true;
+		}
+		
+		return false;
 	}
 	
-	/* After the number of branches in each node is decided we need to rotate them to connect properly. */
-	void configureDirections (Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex root, Vector3 rootPos)
+	public void DebugVisualize (V root)
 	{
-		Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex nextNode = root;
+		DebugVisualize(root, levelStart);
+	}
+	
+	void DebugVisualize (V root, Vector3 rootPos)
+	{
+		V nextNode = root;
 		
 		if (nextNode != null)
 		{
-			Dictionary<Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex, Tuple<Vector3, Vector3>> frontier = graph.getNeighbors(nextNode);
+			List<V> frontier = nextNode.Neighbors();
 			
-			foreach (KeyValuePair<Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex, Tuple<Vector3, Vector3>> kvp in frontier)
+			foreach (V v in frontier)
 			{
-				float deltaX = Random.Range(0.0f, 2.0f);
-				rootPos.x += deltaX;
-				rootPos.z += 2.0f - deltaX;
-				kvp.Value.first = rootPos;
-				configureDirections(graph.getVertex(kvp.Key.data), rootPos);
+				Debug.DrawRay(rootPos, v.data.orientation.first - rootPos);
+				DebugVisualize(v, v.data.orientation.first);
 			}
 		}
 	}
 	
-	public void debugVisualize()
+	public void Visualize (V root)
 	{
-		debugVisualize(start, origin);
-	}
-	
-	void debugVisualize (Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex root, Vector3 rootPos)
-	{
-		Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex nextNode = root;
-		
-		if (nextNode != null)
-		{
-			Dictionary<Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex, Tuple<Vector3, Vector3>> frontier = graph.getNeighbors(nextNode);
-			
-			foreach (KeyValuePair<Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex, Tuple<Vector3, Vector3>> kvp in frontier)
-			{
-				Debug.DrawRay(rootPos, kvp.Value.first - rootPos);
-				debugVisualize(graph.getVertex(kvp.Key.data), kvp.Value.first);
-			}
-		}
-	}
-	
-	public void visualize ()
-	{
-		Graph<Dummy, Tuple<Vector3, Vector3>>.GraphVertex nextNode = start;
+		V nextNode = root;
 		GameObject lastBuilding = null;
 		
 		while (nextNode != null)
 		{
-			GameObject obj = buildingSpawner.getRandBuildingExcept(nextNode.edges.Count, lastBuilding);
+			GameObject obj = buildingSpawner.GetRandBuildingExcept(nextNode.Neighbors.Count, lastBuilding);
 			lastBuilding = obj;
-			GameObject.Instantiate(obj);
+			GameObject.Instantiate(obj, nextNode.data.orientation.first, Quaternion.AngleAxis(nextNode.data.orientation.second), Vector3.up);
 		}
-	}
-	
-	public void printGraph ()
-	{
-		
 	}
 	
 	/* Loads all resources in "Prefabs/Buildings". */
@@ -209,7 +272,7 @@ public class LevelBuilder
 			}
 		}
 		/* Returns building with at least edges number of connectors. */
-		public GameObject getRandBuilding (int edges)
+		public GameObject GetRandBuilding (int edges)
 		{
 			int surplusEdges = Random.Range(edges, maxConnectors);
 			List<GameObject> list = dict[surplusEdges];
@@ -217,14 +280,14 @@ public class LevelBuilder
 		}
 		
 		/* Could run forever if except is the only building with that many edges. */
-		public GameObject getRandBuildingExcept (int edges, GameObject except)
+		public GameObject GetRandBuildingExcept (int edges, GameObject except)
 		{
-			GameObject building = getRandBuilding(edges);
+			GameObject building = GetRandBuilding(edges);
 			
 			/* Reference comparison is fine. */
 			while (building == except)
 			{
-				building = getRandBuilding(edges);
+				building = GetRandBuilding(edges);
 			}
 			
 			return building;
